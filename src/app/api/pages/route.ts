@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { sql } from "@/lib/db";
 
 export async function GET() {
-  const { data, error } = await supabase
-    .from("sports_pages")
-    .select("*")
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Supabase error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    const data = await sql`
+      select * from sports_pages
+      where is_published = true
+      order by sort_order asc, created_at desc
+    `;
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error("Database error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ data });
 }
