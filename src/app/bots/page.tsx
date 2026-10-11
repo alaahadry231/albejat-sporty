@@ -1,46 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const telegramBots = [
-  {
-    id: 1,
-    name: "بوت التحليلات الرياضية",
-    description: "تحليلات يومية لمباريات كرة القدم",
-    image: "https://images.unsplash.com/photo-1611606063065-ee7946f0787a?w=400",
-    category: "تحليلات",
-    botUrl: "https://t.me",
-  },
-  {
-    id: 2,
-    name: "بوت توقعات المباريات",
-    description: "توقعات مباريات اليوم بدقة عالية",
-    image: "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=400",
-    category: "توقعات",
-    botUrl: "https://t.me",
-  },
-  {
-    id: 3,
-    name: "بوت الأخبار الرياضية",
-    description: "أحدث الأخبار الرياضية أولاً بأول",
-    image: "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=400",
-    category: "أخبار",
-    botUrl: "https://t.me",
-  },
-  {
-    id: 4,
-    name: "بوت إحصائيات اللاعبين",
-    description: "إحصائيات شاملة لكل اللاعبين",
-    image: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=400",
-    category: "إحصائيات",
-    botUrl: "https://t.me",
-  },
-];
+type TelegramBot = {
+  id: number;
+  name: string;
+  description: string;
+  bot_url: string;
+  image_url: string;
+  category: string;
+};
 
 export default function BotsPage() {
+  const [bots, setBots] = useState<TelegramBot[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const filtered = telegramBots.filter((b) => b.name.includes(search));
+  useEffect(() => {
+    const fetchBots = async () => {
+      try {
+        const res = await fetch("/api/bots");
+        const json = await res.json();
+        setBots(json.data || []);
+      } catch (err) {
+        console.error("Fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBots();
+  }, []);
+
+  const filtered = bots.filter((b) => b.name.includes(search));
 
   return (
     <main className="min-h-screen">
@@ -79,10 +71,10 @@ export default function BotsPage() {
           />
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="text-center py-20 text-slate-500">
-            لا توجد نتائج مطابقة
-          </div>
+        {loading ? (
+          <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20 text-slate-500">لا توجد نتائج مطابقة</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((bot) => (
@@ -91,13 +83,13 @@ export default function BotsPage() {
                 className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden hover:border-emerald-500/50 transition group"
               >
                 <a
-                  href={bot.botUrl}
+                  href={bot.bot_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block relative h-44 overflow-hidden"
                 >
                   <img
-                    src={bot.image}
+                    src={bot.image_url}
                     alt={bot.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                   />
@@ -111,7 +103,7 @@ export default function BotsPage() {
                   <p className="text-slate-400 text-sm mb-4">{bot.description}</p>
 
                   <a
-                    href={bot.botUrl}
+                    href={bot.bot_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-full px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-bold text-center transition"
