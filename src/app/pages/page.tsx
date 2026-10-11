@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 
 type SportsPage = {
   id: number;
@@ -21,21 +20,19 @@ export default function PagesPage() {
 
   useEffect(() => {
     const fetchPages = async () => {
-      const { data, error } = await supabase
-        .from("sports_pages")
-        .select("*")
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Supabase error message:", error.message);
-        console.error("Supabase error code:", error.code);
-        console.error("Supabase error details:", error.details);
-        console.error("Supabase error hint:", error.hint);
-      } else {
-        setPages(data || []);
+      try {
+        const res = await fetch("/api/pages");
+        const json = await res.json();
+        if (json.data) {
+          setPages(json.data);
+        } else {
+          console.error("API returned:", json);
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchPages();
