@@ -32,7 +32,6 @@ export default function DashboardPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   const fetchPages = async () => {
@@ -80,37 +79,6 @@ export default function DashboardPage() {
     });
     setError("");
     setShowModal(true);
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    setError("");
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "فشل رفع الصورة");
-        return;
-      }
-
-      setForm({ ...form, image_url: data.url });
-    } catch {
-      setError("تعذر رفع الصورة");
-    } finally {
-      setUploading(false);
-    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -345,73 +313,31 @@ export default function DashboardPage() {
                   />
                 </div>
 
-                {/* ==================== قسم الصورة ==================== */}
                 <div className="md:col-span-2">
                   <label className="block text-sm text-slate-400 mb-2">
-                    صورة البكج
+                    رابط الصورة
                   </label>
-
-                  <div className="space-y-3">
-                    <label className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-slate-950 border-2 border-dashed border-slate-700 hover:border-emerald-500 cursor-pointer transition">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        disabled={uploading}
-                        className="hidden"
+                  <input
+                    type="url"
+                    value={form.image_url}
+                    onChange={(e) =>
+                      setForm({ ...form, image_url: e.target.value })
+                    }
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+                    dir="ltr"
+                    placeholder="https://..."
+                  />
+                  {form.image_url && (
+                    <div className="mt-3 rounded-xl overflow-hidden border border-slate-800">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={form.image_url}
+                        alt="معاينة"
+                        className="w-full h-40 object-cover"
                       />
-                      {uploading ? (
-                        <span className="text-emerald-400 text-sm">
-                          جاري رفع الصورة...
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 text-sm">
-                          📷 اختر صورة من جهازك
-                        </span>
-                      )}
-                    </label>
-
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-px bg-slate-800"></div>
-                      <span className="text-xs text-slate-600">أو</span>
-                      <div className="flex-1 h-px bg-slate-800"></div>
                     </div>
-
-                    <input
-                      type="url"
-                      value={form.image_url}
-                      onChange={(e) =>
-                        setForm({ ...form, image_url: e.target.value })
-                      }
-                      className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition text-sm"
-                      dir="ltr"
-                      placeholder="ألصق رابط صورة مباشر..."
-                    />
-
-                    {form.image_url && (
-                      <div className="relative rounded-xl overflow-hidden border border-slate-800">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={form.image_url}
-                          alt="معاينة"
-                          className="w-full h-40 object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display =
-                              "none";
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setForm({ ...form, image_url: "" })}
-                          className="absolute top-2 left-2 w-8 h-8 rounded-lg bg-red-500/80 hover:bg-red-500 text-white text-sm transition"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
-                {/* ==================== نهاية قسم الصورة ==================== */}
 
                 <div>
                   <label className="block text-sm text-slate-400 mb-2">
@@ -464,7 +390,7 @@ export default function DashboardPage() {
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  disabled={saving || uploading}
+                  disabled={saving}
                   className="flex-1 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-900 font-bold transition"
                 >
                   {saving
