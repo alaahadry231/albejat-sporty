@@ -12,7 +12,7 @@ export default function Home() {
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <a href="/" className="text-emerald-400 font-semibold">الرئيسية</a>
-            <a href="/pages" className="text-slate-300 hover:text-emerald-400 transition">Ichancy Bet</a>
+            <a href="/pages" className="text-slate-300 hover:text-emerald-400 transition">البكجات الرياضية</a>
             <a href="/bots" className="text-slate-300 hover:text-emerald-400 transition">بوتات تيليجرام</a>
             <a href="/contact" className="text-slate-300 hover:text-emerald-400 transition">اتصل بنا</a>
           </nav>

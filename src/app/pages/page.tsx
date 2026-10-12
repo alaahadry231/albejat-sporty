@@ -64,7 +64,7 @@ export default function PagesPage() {
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <a href="/" className="text-slate-300 hover:text-emerald-400 transition">الرئيسية</a>
-            <a href="/pages" className="text-emerald-400 font-semibold">Ichancy Bet</a>
+            <a href="/pages" className="text-emerald-400 font-semibold">البكجات الرياضية</a>
             <a href="/bots" className="text-slate-300 hover:text-emerald-400 transition">بوتات تيليجرام</a>
             <a href="/contact" className="text-slate-300 hover:text-emerald-400 transition">اتصل بنا</a>
           </nav>
