@@ -53,14 +53,24 @@ export default function BotsPage() {
         </div>
       </header>
 
-      <section className="max-w-6xl mx-auto px-4 py-12">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-3">
+      {/* Hero with Background */}
+      <section className="relative overflow-hidden min-h-[400px] md:min-h-[500px] flex items-center">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/hero-bots.jpg')" }}
+        ></div>
+        <div className="absolute inset-0 bg-slate-950/75"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-transparent to-slate-950"></div>
+
+        <div className="relative w-full max-w-6xl mx-auto px-4 py-16 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold mb-3">
             بوتات <span className="text-emerald-400">تيليجرام</span>
           </h2>
-          <p className="text-slate-400">أفضل البوتات الرياضية على تيليجرام</p>
+          <p className="text-slate-200 text-lg">أفضل البوتات الرياضية على تيليجرام</p>
         </div>
+      </section>
 
+      <section className="max-w-6xl mx-auto px-4 py-12">
         <div className="mb-8 max-w-md mx-auto">
           <input
             type="text"

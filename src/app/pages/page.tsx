@@ -25,8 +25,6 @@ export default function PagesPage() {
         const json = await res.json();
         if (json.data) {
           setPages(json.data);
-        } else {
-          console.error("API returned:", json);
         }
       } catch (err) {
         console.error("Fetch error:", err);
@@ -73,14 +71,24 @@ export default function PagesPage() {
         </div>
       </header>
 
-      <section className="max-w-6xl mx-auto px-4 py-12">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-3">
+      {/* Hero with Background */}
+      <section className="relative overflow-hidden min-h-[400px] md:min-h-[500px] flex items-center">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/hero-pages.jpg')" }}
+        ></div>
+        <div className="absolute inset-0 bg-slate-950/75"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-transparent to-slate-950"></div>
+
+        <div className="relative w-full max-w-6xl mx-auto px-4 py-16 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold mb-3">
             البكجات <span className="text-emerald-400">الرياضية</span>
           </h2>
-          <p className="text-slate-400">اختر البكج المناسب وانسخ الكود واستخدمه مباشرة</p>
+          <p className="text-slate-200 text-lg">اختر البكج المناسب وانسخ الكود واستخدمه مباشرة</p>
         </div>
+      </section>
 
+      <section className="max-w-6xl mx-auto px-4 py-12">
         <div className="mb-8 max-w-md mx-auto">
           <input
             type="text"
