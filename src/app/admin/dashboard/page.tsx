@@ -48,7 +48,6 @@ export default function DashboardPage() {
 
   const [activeTab, setActiveTab] = useState<"pages" | "bots">("pages");
 
-  // Pages state
   const [pages, setPages] = useState<SportsPage[]>([]);
   const [loadingPages, setLoadingPages] = useState(true);
   const [showPageModal, setShowPageModal] = useState(false);
@@ -57,7 +56,6 @@ export default function DashboardPage() {
   const [savingPage, setSavingPage] = useState(false);
   const [pageError, setPageError] = useState("");
 
-  // Bots state
   const [bots, setBots] = useState<TelegramBot[]>([]);
   const [loadingBots, setLoadingBots] = useState(true);
   const [showBotModal, setShowBotModal] = useState(false);
@@ -66,7 +64,6 @@ export default function DashboardPage() {
   const [savingBot, setSavingBot] = useState(false);
   const [botError, setBotError] = useState("");
 
-  // ============ PAGES ============
   const fetchPages = async () => {
     try {
       const res = await fetch("/api/admin/pages");
@@ -155,7 +152,6 @@ export default function DashboardPage() {
     }
   };
 
-  // ============ BOTS ============
   const fetchBots = async () => {
     try {
       const res = await fetch("/api/admin/bots");
@@ -243,7 +239,6 @@ export default function DashboardPage() {
     }
   };
 
-  // ============ EFFECTS ============
   useEffect(() => {
     fetchPages();
     fetchBots();
@@ -259,9 +254,11 @@ export default function DashboardPage() {
       <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
-              🔒
-            </div>
+            <img
+              src="/logo.png"
+              alt="Ichancy Bet"
+              className="w-10 h-10 rounded-xl object-cover"
+            />
             <h1 className="text-xl font-bold">لوحة الإدارة</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -282,7 +279,6 @@ export default function DashboardPage() {
       </header>
 
       <section className="max-w-6xl mx-auto px-4 py-8">
-        {/* Tabs */}
         <div className="flex gap-2 mb-6 bg-slate-900 p-1 rounded-xl border border-slate-800 w-fit">
           <button
             onClick={() => setActiveTab("pages")}
@@ -306,7 +302,6 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* ============ PAGES TAB ============ */}
         {activeTab === "pages" && (
           <>
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -372,7 +367,6 @@ export default function DashboardPage() {
           </>
         )}
 
-        {/* ============ BOTS TAB ============ */}
         {activeTab === "bots" && (
           <>
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -435,7 +429,6 @@ export default function DashboardPage() {
         )}
       </section>
 
-      {/* ============ PAGE MODAL ============ */}
       {showPageModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl my-8">
@@ -566,7 +559,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ============ BOT MODAL ============ */}
       {showBotModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl my-8">

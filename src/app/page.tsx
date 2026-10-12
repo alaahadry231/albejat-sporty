@@ -5,9 +5,11 @@ export default function Home() {
       <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
-              ⚽
-            </div>
+            <img
+              src="/logo.png"
+              alt="Ichancy Bet"
+              className="w-10 h-10 rounded-xl object-cover"
+            />
             <h1 className="text-xl font-bold">Ichancy Bet</h1>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
@@ -21,28 +23,24 @@ export default function Home() {
 
       {/* Hero with Background Image */}
       <section className="relative overflow-hidden min-h-[600px] md:min-h-[700px] flex items-center">
-        {/* Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: "url('/hero-main.jpg')" }}
         ></div>
-        {/* Dark Overlay */}
         <div className="absolute inset-0 bg-slate-950/70"></div>
-        {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-transparent to-slate-950"></div>
 
-        {/* Content */}
         <div className="relative w-full max-w-6xl mx-auto px-4 py-20 md:py-28 text-center">
           <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm mb-6 backdrop-blur">
             🚀 منصة عربية رياضية
           </div>
           <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            اكتشف أفضل <span className="text-emerald-400">Ichancy Bet</span>
+            اكتشف أفضل <span className="text-emerald-400">البكجات الرياضية</span>
             <br />
             وبوتات تيليجرام
           </h2>
           <p className="text-slate-200 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            منصة عربية تجمع لك أفضل Ichancy Bet مع أكواد جاهزة للنسخ، وبوتات تيليجرام موثوقة.
+            منصة عربية تجمع لك أفضل البكجات الرياضية مع أكواد جاهزة للنسخ، وبوتات تيليجرام موثوقة.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <a
