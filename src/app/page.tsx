@@ -19,11 +19,21 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-transparent to-transparent"></div>
-        <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-28 text-center">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm mb-6">
+      {/* Hero with Background Image */}
+      <section className="relative overflow-hidden min-h-[600px] md:min-h-[700px] flex items-center">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/hero-main.jpg')" }}
+        ></div>
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-slate-950/70"></div>
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-transparent to-slate-950"></div>
+
+        {/* Content */}
+        <div className="relative w-full max-w-6xl mx-auto px-4 py-20 md:py-28 text-center">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm mb-6 backdrop-blur">
             🚀 منصة عربية رياضية
           </div>
           <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
@@ -31,7 +41,7 @@ export default function Home() {
             <br />
             وبوتات تيليجرام
           </h2>
-          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
+          <p className="text-slate-200 text-lg md:text-xl max-w-2xl mx-auto mb-10">
             منصة عربية تجمع لك أفضل البكجات الرياضية مع أكواد جاهزة للنسخ، وبوتات تيليجرام موثوقة.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
@@ -43,7 +53,7 @@ export default function Home() {
             </a>
             <a
               href="/bots"
-              className="px-8 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition border border-slate-700"
+              className="px-8 py-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white font-bold transition border border-slate-700 backdrop-blur"
             >
               بوتات تيليجرام
             </a>
