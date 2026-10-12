@@ -25,11 +25,11 @@ export default function ContactPage() {
             <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
               ⚽
             </div>
-            <h1 className="text-xl font-bold">البكجات الرياضية</h1>
+            <h1 className="text-xl font-bold">Ichancy Bet</h1>
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <a href="/" className="text-slate-300 hover:text-emerald-400 transition">الرئيسية</a>
-            <a href="/pages" className="text-slate-300 hover:text-emerald-400 transition">البكجات الرياضية</a>
+            <a href="/pages" className="text-slate-300 hover:text-emerald-400 transition">Ichancy Bet</a>
             <a href="/bots" className="text-slate-300 hover:text-emerald-400 transition">بوتات تيليجرام</a>
             <a href="/contact" className="text-emerald-400 font-semibold">اتصل بنا</a>
           </nav>
@@ -96,7 +96,7 @@ export default function ContactPage() {
 
       <footer className="border-t border-slate-800 mt-20">
         <div className="max-w-6xl mx-auto px-4 py-8 text-center text-slate-500 text-sm">
-          © 2025 البكجات الرياضية — جميع الحقوق محفوظة
+          © 2025 Ichancy Bet — جميع الحقوق محفوظة
         </div>
       </footer>
     </main>
