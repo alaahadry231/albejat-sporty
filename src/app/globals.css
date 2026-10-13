@@ -3,13 +3,14 @@
 :root {
   --background: #0a0e1a;
   --foreground: #ffffff;
-  --emerald: #10b981;
-  --emerald-light: #34d399;
+  --sky: #0ea5e9;
+  --sky-light: #38bdf8;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-sky: var(--sky);
   --font-sans: var(--font-cairo);
   --font-display: var(--font-tajawal);
 }

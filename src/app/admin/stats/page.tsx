@@ -100,7 +100,7 @@ export default function StatsPage() {
       <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
+            <div className="w-12 h-12 rounded-xl bg-sky-500 flex items-center justify-center font-bold text-slate-900 text-xl">
               ⚽
             </div>
             <h1 className="text-xl font-bold">الإحصائيات</h1>
@@ -127,28 +127,28 @@ export default function StatsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800">
             <div className="text-slate-400 text-sm mb-2">👁️ إجمالي الزيارات</div>
-            <div className="text-3xl font-bold text-emerald-400">
+            <div className="text-3xl font-bold text-sky-400">
               {stats.totalViews.toLocaleString("ar-EG")}
             </div>
           </div>
 
           <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800">
             <div className="text-slate-400 text-sm mb-2">👥 زوار فريدين</div>
-            <div className="text-3xl font-bold text-emerald-400">
+            <div className="text-3xl font-bold text-sky-400">
               {stats.uniqueVisitors.toLocaleString("ar-EG")}
             </div>
           </div>
 
           <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800">
             <div className="text-slate-400 text-sm mb-2">🖱️ إجمالي النقرات</div>
-            <div className="text-3xl font-bold text-emerald-400">
+            <div className="text-3xl font-bold text-sky-400">
               {stats.totalClicks.toLocaleString("ar-EG")}
             </div>
           </div>
 
           <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800">
             <div className="text-slate-400 text-sm mb-2">📬 الرسائل</div>
-            <div className="text-3xl font-bold text-emerald-400">
+            <div className="text-3xl font-bold text-sky-400">
               {stats.totalMessages.toLocaleString("ar-EG")}
             </div>
             {stats.unreadMessages > 0 && (
@@ -162,7 +162,7 @@ export default function StatsPage() {
         {/* Content Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-2xl">
+            <div className="w-14 h-14 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-2xl">
               🏆
             </div>
             <div>
@@ -174,7 +174,7 @@ export default function StatsPage() {
           </div>
 
           <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-2xl">
+            <div className="w-14 h-14 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-2xl">
               🤖
             </div>
             <div>
@@ -199,11 +199,11 @@ export default function StatsPage() {
                 const height = (d.count / maxDailyViews) * 100;
                 return (
                   <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="text-xs text-emerald-400 font-bold">
+                    <div className="text-xs text-sky-400 font-bold">
                       {d.count}
                     </div>
                     <div
-                      className="w-full bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t-lg min-h-[4px] transition-all"
+                      className="w-full bg-gradient-to-t from-sky-500 to-sky-400 rounded-t-lg min-h-[4px] transition-all"
                       style={{ height: `${Math.max(height, 4)}%` }}
                     ></div>
                     <div className="text-xs text-slate-500 text-center whitespace-nowrap">
@@ -231,7 +231,7 @@ export default function StatsPage() {
                     key={i}
                     className="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800"
                   >
-                    <div className="font-mono text-emerald-400 text-sm" dir="ltr">
+                    <div className="font-mono text-sky-400 text-sm" dir="ltr">
                       {v.page}
                     </div>
                     <div className="font-bold">{v.count}</div>
@@ -257,7 +257,7 @@ export default function StatsPage() {
                     <div className="text-slate-300">
                       {c.item_type === "page" ? "🏆 بكجات" : "🤖 بوتات"}
                     </div>
-                    <div className="font-bold text-emerald-400">{c.count}</div>
+                    <div className="font-bold text-sky-400">{c.count}</div>
                   </div>
                 ))}
               </div>
@@ -280,13 +280,13 @@ export default function StatsPage() {
                     key={i}
                     className="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500 text-slate-900 font-bold flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-sky-500 text-slate-900 font-bold flex items-center justify-center shrink-0">
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{p.item_name}</div>
                     </div>
-                    <div className="font-bold text-emerald-400 shrink-0">
+                    <div className="font-bold text-sky-400 shrink-0">
                       {p.count}
                     </div>
                   </div>
@@ -308,13 +308,13 @@ export default function StatsPage() {
                     key={i}
                     className="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500 text-slate-900 font-bold flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-sky-500 text-slate-900 font-bold flex items-center justify-center shrink-0">
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{b.item_name}</div>
                     </div>
-                    <div className="font-bold text-emerald-400 shrink-0">
+                    <div className="font-bold text-sky-400 shrink-0">
                       {b.count}
                     </div>
                   </div>

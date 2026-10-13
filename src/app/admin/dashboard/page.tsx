@@ -327,7 +327,7 @@ export default function DashboardPage() {
       <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
+            <div className="w-12 h-12 rounded-xl bg-sky-500 flex items-center justify-center font-bold text-slate-900 text-xl">
               ⚽
             </div>
             <div className="flex flex-col gap-1.5">
@@ -352,7 +352,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <a
               href="/admin/stats"
-              className="px-4 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-sm border border-emerald-500/30 transition"
+              className="px-4 py-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-sm border border-sky-500/30 transition"
             >
               📊 الإحصائيات
             </a>
@@ -378,7 +378,7 @@ export default function DashboardPage() {
             onClick={() => setActiveTab("pages")}
             className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition ${
               activeTab === "pages"
-                ? "bg-emerald-500 text-slate-900"
+                ? "bg-sky-500 text-slate-900"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -388,7 +388,7 @@ export default function DashboardPage() {
             onClick={() => setActiveTab("bots")}
             className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition ${
               activeTab === "bots"
-                ? "bg-emerald-500 text-slate-900"
+                ? "bg-sky-500 text-slate-900"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -398,7 +398,7 @@ export default function DashboardPage() {
             onClick={() => setActiveTab("messages")}
             className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${
               activeTab === "messages"
-                ? "bg-emerald-500 text-slate-900"
+                ? "bg-sky-500 text-slate-900"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -407,7 +407,7 @@ export default function DashboardPage() {
               <span
                 className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs flex items-center justify-center font-bold ${
                   activeTab === "messages"
-                    ? "bg-slate-900 text-emerald-400"
+                    ? "bg-slate-900 text-sky-400"
                     : "bg-red-500 text-white"
                 }`}
               >
@@ -423,7 +423,7 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-bold">إدارة البكجات</h2>
               <button
                 onClick={openAddPage}
-                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold transition"
+                className="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold transition"
               >
                 + إضافة بكج جديد
               </button>
@@ -452,10 +452,10 @@ export default function DashboardPage() {
                           <div className="text-xs text-slate-500 md:hidden">{p.code}</div>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
-                          <span className="font-mono text-emerald-400 text-sm">{p.code}</span>
+                          <span className="font-mono text-sky-400 text-sm">{p.code}</span>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
-                          <span className="text-emerald-400 font-semibold">{p.rate}</span>
+                          <span className="text-sky-400 font-semibold">{p.rate}</span>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
@@ -488,7 +488,7 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-bold">إدارة البوتات</h2>
               <button
                 onClick={openAddBot}
-                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold transition"
+                className="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold transition"
               >
                 + إضافة بوت جديد
               </button>
@@ -516,7 +516,7 @@ export default function DashboardPage() {
                           <div className="text-xs text-slate-500 md:hidden">{b.category}</div>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
-                          <span className="text-emerald-400 text-sm">{b.category}</span>
+                          <span className="text-sky-400 text-sm">{b.category}</span>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
@@ -565,15 +565,15 @@ export default function DashboardPage() {
                   <button
                     key={msg.id}
                     onClick={() => openMessage(msg)}
-                    className={`text-right bg-slate-900 rounded-2xl border p-5 hover:border-emerald-500/50 transition ${
+                    className={`text-right bg-slate-900 rounded-2xl border p-5 hover:border-sky-500/50 transition ${
                       msg.is_read
                         ? "border-slate-800"
-                        : "border-emerald-500/50 bg-emerald-500/5"
+                        : "border-sky-500/50 bg-sky-500/5"
                     }`}
                   >
                     <div className="flex items-start justify-between mb-3 gap-2">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-emerald-400 shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-sky-400 shrink-0">
                           {msg.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -584,7 +584,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       {!msg.is_read && (
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 mt-1"></span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shrink-0 mt-1"></span>
                       )}
                     </div>
                     <p className="text-slate-400 text-sm line-clamp-2 mb-3">
@@ -630,7 +630,7 @@ export default function DashboardPage() {
                     type="text"
                     value={pageForm.name}
                     onChange={(e) => setPageForm({ ...pageForm, name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                     required
                   />
                 </div>
@@ -641,7 +641,7 @@ export default function DashboardPage() {
                     type="text"
                     value={pageForm.description}
                     onChange={(e) => setPageForm({ ...pageForm, description: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                   />
                 </div>
 
@@ -651,7 +651,7 @@ export default function DashboardPage() {
                     type="text"
                     value={pageForm.code}
                     onChange={(e) => setPageForm({ ...pageForm, code: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white font-mono transition"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white font-mono transition"
                     required
                     dir="ltr"
                   />
@@ -663,7 +663,7 @@ export default function DashboardPage() {
                     type="text"
                     value={pageForm.category}
                     onChange={(e) => setPageForm({ ...pageForm, category: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                   />
                 </div>
 
@@ -673,7 +673,7 @@ export default function DashboardPage() {
                     type="text"
                     value={pageForm.rate}
                     onChange={(e) => setPageForm({ ...pageForm, rate: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                     placeholder="×1"
                   />
                 </div>
@@ -684,7 +684,7 @@ export default function DashboardPage() {
                     id="page_is_published"
                     checked={pageForm.is_published}
                     onChange={(e) => setPageForm({ ...pageForm, is_published: e.target.checked })}
-                    className="w-5 h-5 rounded accent-emerald-500"
+                    className="w-5 h-5 rounded accent-sky-500"
                   />
                   <label htmlFor="page_is_published" className="text-sm text-slate-300">
                     نشر البكج (يظهر للزوار)
@@ -696,7 +696,7 @@ export default function DashboardPage() {
                 <button
                   type="submit"
                   disabled={savingPage}
-                  className="flex-1 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-900 font-bold transition"
+                  className="flex-1 px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition"
                 >
                   {savingPage ? "جاري الحفظ..." : editingPageId ? "حفظ التعديلات" : "إضافة البكج"}
                 </button>
@@ -742,7 +742,7 @@ export default function DashboardPage() {
                     type="text"
                     value={botForm.name}
                     onChange={(e) => setBotForm({ ...botForm, name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                     required
                   />
                 </div>
@@ -753,7 +753,7 @@ export default function DashboardPage() {
                     type="text"
                     value={botForm.description}
                     onChange={(e) => setBotForm({ ...botForm, description: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                   />
                 </div>
 
@@ -763,7 +763,7 @@ export default function DashboardPage() {
                     type="url"
                     value={botForm.bot_url}
                     onChange={(e) => setBotForm({ ...botForm, bot_url: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                     required
                     dir="ltr"
                     placeholder="https://t.me/username"
@@ -776,7 +776,7 @@ export default function DashboardPage() {
                     type="url"
                     value={botForm.image_url}
                     onChange={(e) => setBotForm({ ...botForm, image_url: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                     dir="ltr"
                     placeholder="https://..."
                   />
@@ -794,7 +794,7 @@ export default function DashboardPage() {
                     type="text"
                     value={botForm.category}
                     onChange={(e) => setBotForm({ ...botForm, category: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                   />
                 </div>
 
@@ -804,7 +804,7 @@ export default function DashboardPage() {
                     id="bot_is_published"
                     checked={botForm.is_published}
                     onChange={(e) => setBotForm({ ...botForm, is_published: e.target.checked })}
-                    className="w-5 h-5 rounded accent-emerald-500"
+                    className="w-5 h-5 rounded accent-sky-500"
                   />
                   <label htmlFor="bot_is_published" className="text-sm text-slate-300">
                     نشر البوت (يظهر للزوار)
@@ -816,7 +816,7 @@ export default function DashboardPage() {
                 <button
                   type="submit"
                   disabled={savingBot}
-                  className="flex-1 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-900 font-bold transition"
+                  className="flex-1 px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition"
                 >
                   {savingBot ? "جاري الحفظ..." : editingBotId ? "حفظ التعديلات" : "إضافة البوت"}
                 </button>
@@ -838,14 +838,14 @@ export default function DashboardPage() {
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl my-8">
             <div className="flex items-center justify-between p-5 border-b border-slate-800">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center font-bold text-emerald-400 text-xl">
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center font-bold text-sky-400 text-xl">
                   {viewingMessage.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">{viewingMessage.name}</h3>
                   <a
                     href={`mailto:${viewingMessage.email}`}
-                    className="text-sm text-emerald-400 hover:underline"
+                    className="text-sm text-sky-400 hover:underline"
                     dir="ltr"
                   >
                     {viewingMessage.email}
@@ -874,7 +874,7 @@ export default function DashboardPage() {
               <div className="flex gap-3 flex-wrap">
                 <a
                   href={`mailto:${viewingMessage.email}?subject=رد على رسالتك`}
-                  className="flex-1 min-w-[140px] px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-center transition"
+                  className="flex-1 min-w-[140px] px-5 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold text-center transition"
                 >
                   ✉️ رد عبر الإيميل
                 </a>

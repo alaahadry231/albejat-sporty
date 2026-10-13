@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
     <main className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500 flex items-center justify-center text-slate-900 text-3xl mx-auto mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-slate-900 text-3xl mx-auto mb-4">
             🔒
           </div>
           <h1 className="text-2xl font-bold mb-2">لوحة الإدارة</h1>
@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
               placeholder="admin"
               required
               dir="ltr"
@@ -81,7 +81,7 @@ export default function AdminLoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
+              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
               placeholder="••••••••"
               required
               dir="ltr"
@@ -91,7 +91,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold transition"
+            className="w-full px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold transition"
           >
             {loading ? "جاري التحقق..." : "تسجيل الدخول"}
           </button>
@@ -99,7 +99,7 @@ export default function AdminLoginPage() {
           <div className="text-center pt-2">
             <a
               href="/"
-              className="text-slate-500 hover:text-emerald-400 text-sm transition"
+              className="text-slate-500 hover:text-sky-400 text-sm transition"
             >
               ← العودة للموقع
             </a>

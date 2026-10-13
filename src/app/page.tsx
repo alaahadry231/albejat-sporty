@@ -5,7 +5,7 @@ export default function Home() {
       <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
+            <div className="w-12 h-12 rounded-xl bg-sky-500 flex items-center justify-center font-bold text-slate-900 text-xl">
               ⚽
             </div>
             <div className="flex flex-col gap-1.5">
@@ -33,10 +33,10 @@ export default function Home() {
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <a href="/" className="text-emerald-400 font-semibold">الرئيسية</a>
-            <a href="/pages" className="text-slate-300 hover:text-emerald-400 transition">البكجات الرياضية</a>
-            <a href="/bots" className="text-slate-300 hover:text-emerald-400 transition">بوتات تيليجرام</a>
-            <a href="/contact" className="text-slate-300 hover:text-emerald-400 transition">اتصل بنا</a>
+            <a href="/" className="text-sky-400 font-semibold">الرئيسية</a>
+            <a href="/pages" className="text-slate-300 hover:text-sky-400 transition">البكجات الرياضية</a>
+            <a href="/bots" className="text-slate-300 hover:text-sky-400 transition">بوتات تيليجرام</a>
+            <a href="/contact" className="text-slate-300 hover:text-sky-400 transition">اتصل بنا</a>
           </nav>
         </div>
       </header>
@@ -48,14 +48,14 @@ export default function Home() {
           style={{ backgroundImage: "url('/hero-main.jpg')" }}
         ></div>
         <div className="absolute inset-0 bg-slate-950/70"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-transparent to-slate-950"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-sky-500/10 via-transparent to-slate-950"></div>
 
         <div className="relative w-full max-w-6xl mx-auto px-4 py-20 md:py-28 text-center">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm mb-6 backdrop-blur">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-sm mb-6 backdrop-blur">
             🚀 منصة عربية رياضية
           </div>
           <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            اكتشف أفضل <span className="text-emerald-400">البكجات الرياضية</span>
+            اكتشف أفضل <span className="text-sky-400">البكجات الرياضية</span>
             <br />
             وبوتات تيليجرام
           </h2>
@@ -65,7 +65,7 @@ export default function Home() {
           <div className="flex flex-wrap gap-4 justify-center">
             <a
               href="/pages"
-              className="px-8 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold transition shadow-lg shadow-emerald-500/25"
+              className="px-8 py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold transition shadow-lg shadow-sky-500/25"
             >
               تصفح البكجات
             </a>
@@ -83,15 +83,15 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-4 py-12">
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-slate-900 rounded-2xl p-6 text-center border border-slate-800">
-            <div className="text-3xl font-bold text-emerald-400 mb-1">+50</div>
+            <div className="text-3xl font-bold text-sky-400 mb-1">+50</div>
             <div className="text-slate-400 text-sm">بكج رياضي</div>
           </div>
           <div className="bg-slate-900 rounded-2xl p-6 text-center border border-slate-800">
-            <div className="text-3xl font-bold text-emerald-400 mb-1">+30</div>
+            <div className="text-3xl font-bold text-sky-400 mb-1">+30</div>
             <div className="text-slate-400 text-sm">بوت تيليجرام</div>
           </div>
           <div className="bg-slate-900 rounded-2xl p-6 text-center border border-slate-800">
-            <div className="text-3xl font-bold text-emerald-400 mb-1">+10K</div>
+            <div className="text-3xl font-bold text-sky-400 mb-1">+10K</div>
             <div className="text-slate-400 text-sm">مستخدم</div>
           </div>
         </div>

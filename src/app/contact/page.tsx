@@ -49,7 +49,7 @@ export default function ContactPage() {
       <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-3">
           <a href="/" className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
+            <div className="w-12 h-12 rounded-xl bg-sky-500 flex items-center justify-center font-bold text-slate-900 text-xl">
               ⚽
             </div>
             <div className="flex flex-col gap-1.5">
@@ -72,10 +72,10 @@ export default function ContactPage() {
             </div>
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <a href="/" className="text-slate-300 hover:text-emerald-400 transition">الرئيسية</a>
-            <a href="/pages" className="text-slate-300 hover:text-emerald-400 transition">البكجات الرياضية</a>
-            <a href="/bots" className="text-slate-300 hover:text-emerald-400 transition">بوتات تيليجرام</a>
-            <a href="/contact" className="text-emerald-400 font-semibold">اتصل بنا</a>
+            <a href="/" className="text-slate-300 hover:text-sky-400 transition">الرئيسية</a>
+            <a href="/pages" className="text-slate-300 hover:text-sky-400 transition">البكجات الرياضية</a>
+            <a href="/bots" className="text-slate-300 hover:text-sky-400 transition">بوتات تيليجرام</a>
+            <a href="/contact" className="text-sky-400 font-semibold">اتصل بنا</a>
           </nav>
         </div>
       </header>
@@ -83,13 +83,13 @@ export default function ContactPage() {
       <section className="max-w-2xl mx-auto px-4 py-16">
         <div className="text-center mb-10">
           <h2 className="text-3xl md:text-4xl font-bold mb-3">
-            تواصل <span className="text-emerald-400">معنا</span>
+            تواصل <span className="text-sky-400">معنا</span>
           </h2>
           <p className="text-slate-400">عندك سؤال أو اقتراح؟ ابعتلنا رسالة</p>
         </div>
 
         {sent && (
-          <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-center">
+          <div className="mb-6 p-4 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 text-center">
             ✓ تم إرسال رسالتك بنجاح، شكراً لتواصلك معنا
           </div>
         )}
@@ -107,7 +107,7 @@ export default function ContactPage() {
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white placeholder:text-slate-500 transition"
+              className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-sky-500 focus:outline-none text-white placeholder:text-slate-500 transition"
               placeholder="اكتب اسمك"
               maxLength={100}
             />
@@ -119,7 +119,7 @@ export default function ContactPage() {
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white placeholder:text-slate-500 transition"
+              className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-sky-500 focus:outline-none text-white placeholder:text-slate-500 transition"
               placeholder="example@email.com"
               dir="ltr"
               maxLength={200}
@@ -132,7 +132,7 @@ export default function ContactPage() {
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
               rows={5}
-              className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white placeholder:text-slate-500 transition resize-none"
+              className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-sky-500 focus:outline-none text-white placeholder:text-slate-500 transition resize-none"
               placeholder="اكتب رسالتك هنا..."
               maxLength={2000}
             />
@@ -141,7 +141,7 @@ export default function ContactPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold transition shadow-lg shadow-emerald-500/25"
+            className="w-full px-6 py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold transition shadow-lg shadow-sky-500/25"
           >
             {loading ? "جاري الإرسال..." : "إرسال الرسالة"}
           </button>

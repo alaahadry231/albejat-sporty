@@ -42,7 +42,7 @@ export default function BotsPage() {
       <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-3">
           <a href="/" className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
+            <div className="w-12 h-12 rounded-xl bg-sky-500 flex items-center justify-center font-bold text-slate-900 text-xl">
               ⚽
             </div>
             <div className="flex flex-col gap-1.5">
@@ -65,10 +65,10 @@ export default function BotsPage() {
             </div>
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <a href="/" className="text-slate-300 hover:text-emerald-400 transition">الرئيسية</a>
-            <a href="/pages" className="text-slate-300 hover:text-emerald-400 transition">البكجات الرياضية</a>
-            <a href="/bots" className="text-emerald-400 font-semibold">بوتات تيليجرام</a>
-            <a href="/contact" className="text-slate-300 hover:text-emerald-400 transition">اتصل بنا</a>
+            <a href="/" className="text-slate-300 hover:text-sky-400 transition">الرئيسية</a>
+            <a href="/pages" className="text-slate-300 hover:text-sky-400 transition">البكجات الرياضية</a>
+            <a href="/bots" className="text-sky-400 font-semibold">بوتات تيليجرام</a>
+            <a href="/contact" className="text-slate-300 hover:text-sky-400 transition">اتصل بنا</a>
           </nav>
         </div>
       </header>
@@ -79,11 +79,11 @@ export default function BotsPage() {
           style={{ backgroundImage: "url('/hero-bots.jpg')" }}
         ></div>
         <div className="absolute inset-0 bg-slate-950/75"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-transparent to-slate-950"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-sky-500/10 via-transparent to-slate-950"></div>
 
         <div className="relative w-full max-w-6xl mx-auto px-4 py-12 text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-3">
-            بوتات <span className="text-emerald-400">تيليجرام</span>
+            بوتات <span className="text-sky-400">تيليجرام</span>
           </h2>
           <p className="text-slate-200 text-lg">أفضل البوتات الرياضية على تيليجرام</p>
         </div>
@@ -96,7 +96,7 @@ export default function BotsPage() {
             placeholder="ابحث باسم البوت..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white placeholder:text-slate-500 transition"
+            className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-sky-500 focus:outline-none text-white placeholder:text-slate-500 transition"
           />
         </div>
 
@@ -109,7 +109,7 @@ export default function BotsPage() {
             {filtered.map((bot) => (
               <div
                 key={bot.id}
-                className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden hover:border-emerald-500/50 transition group"
+                className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden hover:border-sky-500/50 transition group"
               >
                 <a
                   href={bot.bot_url}
@@ -123,7 +123,7 @@ export default function BotsPage() {
                     alt={bot.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                   />
-                  <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-slate-900/90 text-emerald-400 text-xs border border-emerald-500/30">
+                  <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-slate-900/90 text-sky-400 text-xs border border-sky-500/30">
                     {bot.category}
                   </div>
                 </a>
@@ -137,7 +137,7 @@ export default function BotsPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => trackClick("bot", bot.id, bot.name)}
-                    className="block w-full px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-bold text-center transition"
+                    className="block w-full px-4 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 text-sm font-bold text-center transition"
                   >
                     الدخول إلى البوت
                   </a>
