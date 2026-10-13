@@ -44,10 +44,11 @@ export default function PagesPage() {
       p.code.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleCopy = async (code: string, id: number) => {
+  const handleCopy = async (code: string, id: number, name: string) => {
     try {
       await navigator.clipboard.writeText(code);
       setCopiedId(id);
+      trackClick("page", id, name);
       setTimeout(() => setCopiedId(null), 2000);
     } catch {
       alert("تعذر النسخ، جرّب يدوياً");
@@ -81,7 +82,7 @@ export default function PagesPage() {
         <div className="absolute inset-0 bg-slate-950/75"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-transparent to-slate-950"></div>
 
-        <div className="relative w-full max-w-6xl mx-auto px-4 py-16 text-center">
+        <div className="relative w-full max-w-6xl mx-auto px-4 py-12 text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-3">
             البكجات <span className="text-emerald-400">الرياضية</span>
           </h2>
@@ -136,7 +137,7 @@ export default function PagesPage() {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleCopy(item.code, item.id)}
+                    onClick={() => handleCopy(item.code, item.id, item.name)}
                     className="flex-1 px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold transition border border-slate-700"
                   >
                     {copiedId === item.id ? "✓ تم النسخ" : "نسخ الكود"}
@@ -145,7 +146,6 @@ export default function PagesPage() {
                     href="https://www.ichancy.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => trackClick("page", item.id, item.name)}
                     className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-bold text-center transition"
                   >
                     iChancy
