@@ -24,6 +24,15 @@ type TelegramBot = {
   is_published: boolean;
 };
 
+type Message = {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+};
+
 const emptyPageForm = {
   name: "",
   description: "",
@@ -46,7 +55,7 @@ const emptyBotForm = {
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"pages" | "bots">("pages");
+  const [activeTab, setActiveTab] = useState<"pages" | "bots" | "messages">("pages");
 
   const [pages, setPages] = useState<SportsPage[]>([]);
   const [loadingPages, setLoadingPages] = useState(true);
@@ -64,6 +73,11 @@ export default function DashboardPage() {
   const [savingBot, setSavingBot] = useState(false);
   const [botError, setBotError] = useState("");
 
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(true);
+  const [viewingMessage, setViewingMessage] = useState<Message | null>(null);
+
+  // ============ PAGES ============
   const fetchPages = async () => {
     try {
       const res = await fetch("/api/admin/pages");
@@ -152,6 +166,7 @@ export default function DashboardPage() {
     }
   };
 
+  // ============ BOTS ============
   const fetchBots = async () => {
     try {
       const res = await fetch("/api/admin/bots");
@@ -239,14 +254,79 @@ export default function DashboardPage() {
     }
   };
 
+  // ============ MESSAGES ============
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch("/api/admin/messages");
+      if (res.status === 401) {
+        router.push("/admin");
+        return;
+      }
+      const json = await res.json();
+      setMessages(json.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
+
+  const openMessage = async (msg: Message) => {
+    setViewingMessage(msg);
+    if (!msg.is_read) {
+      try {
+        await fetch(`/api/admin/messages/${msg.id}`, { method: "PUT" });
+        setMessages((prev) =>
+          prev.map((m) => (m.id === msg.id ? { ...m, is_read: true } : m))
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleDeleteMessage = async (id: number) => {
+    if (!confirm("هل أنت متأكد من حذف الرسالة؟")) return;
+    try {
+      const res = await fetch(`/api/admin/messages/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        alert("فشل الحذف");
+        return;
+      }
+      setViewingMessage(null);
+      await fetchMessages();
+    } catch {
+      alert("تعذر الاتصال بالخادم");
+    }
+  };
+
+  const unreadCount = messages.filter((m) => !m.is_read).length;
+
+  // ============ EFFECTS ============
   useEffect(() => {
     fetchPages();
     fetchBots();
+    fetchMessages();
   }, []);
 
   const handleLogout = async () => {
     await fetch("/api/logout", { method: "POST" });
     router.push("/admin");
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString("ar-EG", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return dateStr;
+    }
   };
 
   return (
@@ -279,7 +359,7 @@ export default function DashboardPage() {
       </header>
 
       <section className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex gap-2 mb-6 bg-slate-900 p-1 rounded-xl border border-slate-800 w-fit">
+        <div className="flex gap-2 mb-6 bg-slate-900 p-1 rounded-xl border border-slate-800 w-fit flex-wrap">
           <button
             onClick={() => setActiveTab("pages")}
             className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition ${
@@ -299,6 +379,27 @@ export default function DashboardPage() {
             }`}
           >
             🤖 البوتات
+          </button>
+          <button
+            onClick={() => setActiveTab("messages")}
+            className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${
+              activeTab === "messages"
+                ? "bg-emerald-500 text-slate-900"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            📬 الرسائل
+            {unreadCount > 0 && (
+              <span
+                className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs flex items-center justify-center font-bold ${
+                  activeTab === "messages"
+                    ? "bg-slate-900 text-emerald-400"
+                    : "bg-red-500 text-white"
+                }`}
+              >
+                {unreadCount}
+              </span>
+            )}
           </button>
         </div>
 
@@ -423,6 +524,63 @@ export default function DashboardPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === "messages" && (
+          <>
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+              <h2 className="text-2xl font-bold">الرسائل</h2>
+              <button
+                onClick={fetchMessages}
+                className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-sm transition"
+              >
+                🔄 تحديث
+              </button>
+            </div>
+
+            {loadingMessages ? (
+              <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+            ) : messages.length === 0 ? (
+              <div className="text-center py-20 text-slate-500">لا توجد رسائل بعد</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {messages.map((msg) => (
+                  <button
+                    key={msg.id}
+                    onClick={() => openMessage(msg)}
+                    className={`text-right bg-slate-900 rounded-2xl border p-5 hover:border-emerald-500/50 transition ${
+                      msg.is_read
+                        ? "border-slate-800"
+                        : "border-emerald-500/50 bg-emerald-500/5"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3 gap-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-emerald-400 shrink-0">
+                          {msg.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold truncate">{msg.name}</div>
+                          <div className="text-xs text-slate-500 truncate" dir="ltr">
+                            {msg.email}
+                          </div>
+                        </div>
+                      </div>
+                      {!msg.is_read && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 mt-1"></span>
+                      )}
+                    </div>
+                    <p className="text-slate-400 text-sm line-clamp-2 mb-3">
+                      {msg.message}
+                    </p>
+                    <div className="text-xs text-slate-600">
+                      {formatDate(msg.created_at)}
+                    </div>
+                  </button>
+                ))}
               </div>
             )}
           </>
@@ -675,6 +833,69 @@ export default function DashboardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {viewingMessage && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl my-8">
+            <div className="flex items-center justify-between p-5 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center font-bold text-emerald-400 text-xl">
+                  {viewingMessage.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">{viewingMessage.name}</h3>
+                  <a
+                    href={`mailto:${viewingMessage.email}`}
+                    className="text-sm text-emerald-400 hover:underline"
+                    dir="ltr"
+                  >
+                    {viewingMessage.email}
+                  </a>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingMessage(null)}
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5">
+              <div className="text-xs text-slate-500 mb-4">
+                {formatDate(viewingMessage.created_at)}
+              </div>
+
+              <div className="bg-slate-950 rounded-xl p-5 border border-slate-800 mb-5">
+                <p className="text-white whitespace-pre-wrap leading-relaxed">
+                  {viewingMessage.message}
+                </p>
+              </div>
+
+              <div className="flex gap-3 flex-wrap">
+                <a
+                  href={`mailto:${viewingMessage.email}?subject=رد على رسالتك`}
+                  className="flex-1 min-w-[140px] px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-center transition"
+                >
+                  ✉️ رد عبر الإيميل
+                </a>
+                <button
+                  onClick={() => handleDeleteMessage(viewingMessage.id)}
+                  className="px-5 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition"
+                >
+                  حذف
+                </button>
+                <button
+                  onClick={() => setViewingMessage(null)}
+                  className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition"
+                >
+                  إغلاق
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

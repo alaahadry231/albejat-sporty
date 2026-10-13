@@ -5,16 +5,43 @@ import { useState } from "react";
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
     if (!form.name || !form.email || !form.message) {
-      alert("الرجاء تعبئة جميع الحقول");
+      setError("الرجاء تعبئة جميع الحقول");
       return;
     }
-    setSent(true);
-    setForm({ name: "", email: "", message: "" });
-    setTimeout(() => setSent(false), 4000);
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "فشل الإرسال");
+        setLoading(false);
+        return;
+      }
+
+      setSent(true);
+      setForm({ name: "", email: "", message: "" });
+      setTimeout(() => setSent(false), 5000);
+    } catch {
+      setError("تعذر الاتصال بالخادم");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,7 +75,13 @@ export default function ContactPage() {
 
         {sent && (
           <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-center">
-            ✓ تم إرسال رسالتك بنجاح، رح نتواصل معك قريباً
+            ✓ تم إرسال رسالتك بنجاح، شكراً لتواصلك معنا
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-center">
+            {error}
           </div>
         )}
 
@@ -61,6 +94,7 @@ export default function ContactPage() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white placeholder:text-slate-500 transition"
               placeholder="اكتب اسمك"
+              maxLength={100}
             />
           </div>
 
@@ -73,6 +107,7 @@ export default function ContactPage() {
               className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white placeholder:text-slate-500 transition"
               placeholder="example@email.com"
               dir="ltr"
+              maxLength={200}
             />
           </div>
 
@@ -84,14 +119,16 @@ export default function ContactPage() {
               rows={5}
               className="w-full px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white placeholder:text-slate-500 transition resize-none"
               placeholder="اكتب رسالتك هنا..."
+              maxLength={2000}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold transition shadow-lg shadow-emerald-500/25"
+            disabled={loading}
+            className="w-full px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold transition shadow-lg shadow-emerald-500/25"
           >
-            إرسال الرسالة
+            {loading ? "جاري الإرسال..." : "إرسال الرسالة"}
           </button>
         </form>
       </section>
