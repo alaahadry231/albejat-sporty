@@ -60,7 +60,7 @@ export default function PagesPage() {
             <img
               src="/logo.png"
               alt="Ichancy Bet"
-              className="w-10 h-10 rounded-xl object-cover"
+              className="              w-10 h-10 object-contain"
             />
             <h1 className="text-xl font-bold">Ichancy Bet</h1>
           </a>
