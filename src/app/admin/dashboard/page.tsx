@@ -8,7 +8,6 @@ type SportsPage = {
   name: string;
   description: string;
   code: string;
-  image_url: string;
   category: string;
   rate: string;
   is_published: boolean;
@@ -37,7 +36,6 @@ const emptyPageForm = {
   name: "",
   description: "",
   code: "",
-  image_url: "",
   category: "عام",
   rate: "×1",
   is_published: true,
@@ -106,7 +104,6 @@ export default function DashboardPage() {
       name: page.name,
       description: page.description,
       code: page.code,
-      image_url: page.image_url,
       category: page.category,
       rate: page.rate,
       is_published: page.is_published,
@@ -635,24 +632,6 @@ export default function DashboardPage() {
                     required
                     dir="ltr"
                   />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-400 mb-2">رابط الصورة</label>
-                  <input
-                    type="url"
-                    value={pageForm.image_url}
-                    onChange={(e) => setPageForm({ ...pageForm, image_url: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:outline-none text-white transition"
-                    dir="ltr"
-                    placeholder="https://..."
-                  />
-                  {pageForm.image_url && (
-                    <div className="mt-3 rounded-xl overflow-hidden border border-slate-800">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={pageForm.image_url} alt="معاينة" className="w-full h-40 object-cover" />
-                    </div>
-                  )}
                 </div>
 
                 <div>

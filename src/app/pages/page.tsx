@@ -7,7 +7,6 @@ type SportsPage = {
   name: string;
   description: string;
   code: string;
-  image_url: string;
   category: string;
   rate: string;
 };
@@ -107,49 +106,46 @@ export default function PagesPage() {
             {filtered.map((item) => (
               <div
                 key={item.id}
-                className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden hover:border-emerald-500/50 transition group"
+                className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden hover:border-emerald-500/50 transition p-5"
               >
-                <div className="relative h-44 overflow-hidden">
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                  />
-                  <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-slate-900/90 text-emerald-400 text-xs border border-emerald-500/30">
-                    {item.category}
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold mb-1">{item.name}</h3>
+                    <p className="text-slate-400 text-sm">{item.description}</p>
                   </div>
-                  <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-emerald-500 text-slate-900 text-xs font-bold">
+                  <div className="px-3 py-1 rounded-full bg-emerald-500 text-slate-900 text-xs font-bold whitespace-nowrap shrink-0">
                     ريت {item.rate}
                   </div>
                 </div>
 
-                <div className="p-5">
-                  <h3 className="text-lg font-bold mb-1">{item.name}</h3>
-                  <p className="text-slate-400 text-sm mb-4">{item.description}</p>
+                <div className="mb-3">
+                  <span className="inline-block px-3 py-1 rounded-full bg-slate-950 text-emerald-400 text-xs border border-slate-800">
+                    {item.category}
+                  </span>
+                </div>
 
-                  <div className="bg-slate-950 rounded-lg p-3 mb-4 border border-slate-800">
-                    <div className="text-xs text-slate-500 mb-1">الكود:</div>
-                    <div className="font-mono text-emerald-400 text-sm break-all">
-                      {item.code}
-                    </div>
+                <div className="bg-slate-950 rounded-lg p-3 mb-4 border border-slate-800">
+                  <div className="text-xs text-slate-500 mb-1">الكود:</div>
+                  <div className="font-mono text-emerald-400 text-sm break-all">
+                    {item.code}
                   </div>
+                </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleCopy(item.code, item.id)}
-                      className="flex-1 px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold transition border border-slate-700"
-                    >
-                      {copiedId === item.id ? "✓ تم النسخ" : "نسخ الكود"}
-                    </button>
-                    <a
-                      href="https://www.ichancy.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-bold text-center transition"
-                    >
-                      iChancy
-                    </a>
-                  </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleCopy(item.code, item.id)}
+                    className="flex-1 px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold transition border border-slate-700"
+                  >
+                    {copiedId === item.id ? "✓ تم النسخ" : "نسخ الكود"}
+                  </button>
+                  <a
+                    href="https://www.ichancy.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-bold text-center transition"
+                  >
+                    iChancy
+                  </a>
                 </div>
               </div>
             ))}
