@@ -70,7 +70,7 @@ export default function PagesPage() {
         </div>
       </header>
 
-      <section className="relative overflow-hidden min-h-[400px] md:min-h-[500px] flex items-center">
+      <section className="relative overflow-hidden min-h-[250px] md:min-h-[300px] flex items-center">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: "url('/hero-pages.jpg')" }}
