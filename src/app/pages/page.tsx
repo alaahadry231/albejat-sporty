@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackView, trackClick } from "@/lib/tracking";
 
 type SportsPage = {
   id: number;
@@ -18,6 +19,8 @@ export default function PagesPage() {
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   useEffect(() => {
+    trackView("/pages");
+
     const fetchPages = async () => {
       try {
         const res = await fetch("/api/pages");
@@ -142,6 +145,7 @@ export default function PagesPage() {
                     href="https://www.ichancy.com"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackClick("page", item.id, item.name)}
                     className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-bold text-center transition"
                   >
                     iChancy

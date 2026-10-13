@@ -332,7 +332,13 @@ export default function DashboardPage() {
             </div>
             <h1 className="text-xl font-bold">لوحة الإدارة</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <a
+              href="/admin/stats"
+              className="px-4 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-sm border border-emerald-500/30 transition"
+            >
+              📊 الإحصائيات
+            </a>
             <a
               href="/"
               className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-sm transition"

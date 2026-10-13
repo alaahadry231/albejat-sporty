@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackView, trackClick } from "@/lib/tracking";
 
 type TelegramBot = {
   id: number;
@@ -17,6 +18,8 @@ export default function BotsPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
+    trackView("/bots");
+
     const fetchBots = async () => {
       try {
         const res = await fetch("/api/bots");
@@ -115,10 +118,11 @@ export default function BotsPage() {
                     href={bot.bot_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-bold text-center transition"
-                  >
-                    الدخول إلى البوت
-                  </a>
+                    onClick={() => trackClick("bot", bot.id, bot.name)}
+                      className="block w-full px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-bold text-center transition"
+                 >
+  الدخول إلى البوت
+</a>
                 </div>
               </div>
             ))}
