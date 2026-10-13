@@ -77,7 +77,6 @@ export default function DashboardPage() {
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [viewingMessage, setViewingMessage] = useState<Message | null>(null);
 
-  // ============ PAGES ============
   const fetchPages = async () => {
     try {
       const res = await fetch("/api/admin/pages");
@@ -166,7 +165,6 @@ export default function DashboardPage() {
     }
   };
 
-  // ============ BOTS ============
   const fetchBots = async () => {
     try {
       const res = await fetch("/api/admin/bots");
@@ -254,7 +252,6 @@ export default function DashboardPage() {
     }
   };
 
-  // ============ MESSAGES ============
   const fetchMessages = async () => {
     try {
       const res = await fetch("/api/admin/messages");
@@ -302,7 +299,6 @@ export default function DashboardPage() {
 
   const unreadCount = messages.filter((m) => !m.is_read).length;
 
-  // ============ EFFECTS ============
   useEffect(() => {
     fetchPages();
     fetchBots();
@@ -334,11 +330,9 @@ export default function DashboardPage() {
       <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img
-              src="/logo.png"
-              alt="Ichancy Bet"
-              className="              w-10 h-10 object-contain"
-            />
+            <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
+              ⚽
+            </div>
             <h1 className="text-xl font-bold">لوحة الإدارة</h1>
           </div>
           <div className="flex items-center gap-2">

@@ -49,11 +49,9 @@ export default function ContactPage() {
       <header className="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3">
-            <img
-              src="/logo.png"
-              alt="Ichancy Bet"
-              className="              w-10 h-10 object-contain"
-            />
+            <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-xl">
+              ⚽
+            </div>
             <h1 className="text-xl font-bold">Ichancy Bet</h1>
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm">
