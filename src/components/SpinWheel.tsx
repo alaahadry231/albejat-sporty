@@ -40,13 +40,11 @@ export default function SpinWheel() {
 
     ctx.clearRect(0, 0, size, size);
 
-    // Outer ring
     ctx.beginPath();
     ctx.arc(center, center, radius + 6, 0, Math.PI * 2);
     ctx.fillStyle = "#0ea5e9";
     ctx.fill();
 
-    // Wheel segments
     prizes.forEach((prize, i) => {
       const startAngle = i * segmentAngle + rot - Math.PI / 2;
       const endAngle = startAngle + segmentAngle;
@@ -62,7 +60,6 @@ export default function SpinWheel() {
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Text
       ctx.save();
       ctx.translate(center, center);
       ctx.rotate(startAngle + segmentAngle / 2);
@@ -73,7 +70,6 @@ export default function SpinWheel() {
       ctx.restore();
     });
 
-    // Center circle
     ctx.beginPath();
     ctx.arc(center, center, 40, 0, Math.PI * 2);
     ctx.fillStyle = "#0f172a";
@@ -82,7 +78,6 @@ export default function SpinWheel() {
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    // Center emoji
     ctx.fillStyle = "#0ea5e9";
     ctx.font = "bold 24px Cairo, sans-serif";
     ctx.textAlign = "center";
@@ -94,33 +89,6 @@ export default function SpinWheel() {
     drawWheel(0);
   }, []);
 
-  // تحديد القطاع الحقيقي اللي المؤشر واقف عليه
-  const getCurrentPrizeIndex = (rot: number): number => {
-    // المؤشر في الأعلى = -π/2
-    // القطاع رقم i مركزه عند: i * segmentAngle + segmentAngle/2 + rot - π/2
-    // بدنا نلاقي القطاع اللي مركزه أقرب لـ 0 (نسبة للـ rotation)
-
-    // المبسّط: نلاقي i بحيث:
-    // (i * segmentAngle + segmentAngle/2 + rot) ≡ -π/2 (mod 2π)
-    // أي: (i * segmentAngle + segmentAngle/2 + rot + π/2) ≡ 0 (mod 2π)
-
-    const adjusted = (rot + Math.PI / 2) % (Math.PI * 2);
-    const normalized = adjusted < 0 ? adjusted + Math.PI * 2 : adjusted;
-
-    // نبغى i بحيث: i * segmentAngle + segmentAngle/2 = -normalized (mod 2π)
-    // أو: i * segmentAngle = -normalized - segmentAngle/2 (mod 2π)
-    // i = (-normalized - segmentAngle/2) / segmentAngle (mod 7)
-
-    let index = Math.round(
-      (-normalized - segmentAngle / 2) / segmentAngle
-    );
-
-    // تطبيع للفترة [0, 7)
-    index = ((index % prizes.length) + prizes.length) % prizes.length;
-
-    return index;
-  };
-
   const spin = () => {
     if (spinning) return;
     setResult(null);
@@ -128,24 +96,25 @@ export default function SpinWheel() {
 
     const randomIndex = Math.floor(Math.random() * prizes.length);
 
-    // نبغى العجلة تتوقف بحيث القطاع randomIndex يكون تحت المؤشر
-    // زاوية قطاع randomIndex في العجلة (بدون rotation): randomIndex * segmentAngle + segmentAngle/2
-    // بعد rotation: (randomIndex * segmentAngle + segmentAngle/2 + rotation)
-    // نبغى هذا = -π/2 (mod 2π)
-    // rotation = -π/2 - randomIndex * segmentAngle - segmentAngle/2
+    // القطاع randomIndex مركزه بالنسبة للعجلة عند: randomIndex * segmentAngle + segmentAngle/2
+    // في drawWheel: startAngle = i * segmentAngle + rot - π/2
+    // مركز القطاع بعد rotation = i * segmentAngle + segmentAngle/2 + rot - π/2
+    // نبغى هذا = 0 (زاوية المؤشر الفعلية)
+    // يعني: i * segmentAngle + segmentAngle/2 + rot - π/2 = 0 (mod 2π)
+    // rot = π/2 - i * segmentAngle - segmentAngle/2 (mod 2π)
 
     const segmentCenter = randomIndex * segmentAngle + segmentAngle / 2;
-    const targetAngle = -Math.PI / 2 - segmentCenter;
+    const targetRotation = Math.PI / 2 - segmentCenter;
 
     const currentRotation = rotationRef.current;
     const fullTurns = 6 + Math.floor(Math.random() * 3);
 
-    // نلاقي delta موجب بحيث currentRotation + delta ≡ targetAngle (mod 2π)
+    // نبغى: currentRotation + delta ≡ targetRotation (mod 2π)
     const currentMod = ((currentRotation % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-    let delta = targetAngle - currentMod;
-    // نطبّع delta للفترة [0, 2π)
+    const targetMod = ((targetRotation % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+
+    let delta = targetMod - currentMod;
     delta = ((delta % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-    // نضيف دورات كاملة
     delta += fullTurns * Math.PI * 2;
 
     const startRotation = currentRotation;
@@ -167,14 +136,9 @@ export default function SpinWheel() {
       if (progress < 1) {
         animationRef.current = requestAnimationFrame(animate);
       } else {
-        // نصلح rotationRef للقيمة النهائية
         rotationRef.current = endRotation;
-
-        // نحدد القطاع الحقيقي من الوضع النهائي
-        const actualIndex = getCurrentPrizeIndex(endRotation);
-
         setSpinning(false);
-        setResult(prizes[actualIndex]);
+        setResult(prizes[randomIndex]);
       }
     };
 
@@ -191,9 +155,7 @@ export default function SpinWheel() {
 
   return (
     <div className="flex flex-col items-center gap-6">
-      {/* Pointer + Wheel */}
       <div className="relative">
-        {/* Pointer at top */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
           <div
             className="w-0 h-0"
@@ -214,7 +176,6 @@ export default function SpinWheel() {
         />
       </div>
 
-      {/* Spin Button */}
       <button
         onClick={spin}
         disabled={spinning}
@@ -223,7 +184,6 @@ export default function SpinWheel() {
         {spinning ? "جاري الدوران..." : "🎯 دوّر العجلة"}
       </button>
 
-      {/* Result */}
       {result && (
         <div
           className={`mt-4 px-6 py-4 rounded-2xl border-2 text-center ${
