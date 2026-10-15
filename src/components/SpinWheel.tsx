@@ -132,7 +132,10 @@ export default function SpinWheel() {
   };
 
   const spin = () => {
-    if (spinning || !verifiedCode || result) return;
+    if (spinning || !verifiedCode) return;
+    // منع اللف إلا إذا ما في نتيجة، أو النتيجة "محاولة أخرى"
+    if (result && result.type !== "retry") return;
+
     setResult(null);
     setSpinning(true);
 
@@ -177,15 +180,18 @@ export default function SpinWheel() {
         setSpinning(false);
         setResult(finalPrize);
 
-        fetch("/api/spin/result", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            code: verifiedCode,
-            prize: finalPrize.value,
-            prize_type: finalPrize.type,
-          }),
-        }).catch((err) => console.error("Save error:", err));
+        // إذا "محاولة أخرى" → ما نسجل، ونخلي الزائر يلف مرة ثانية
+        if (finalPrize.type !== "retry") {
+          fetch("/api/spin/result", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: verifiedCode,
+              prize: finalPrize.value,
+              prize_type: finalPrize.type,
+            }),
+          }).catch((err) => console.error("Save error:", err));
+        }
       }
     };
 
@@ -199,6 +205,17 @@ export default function SpinWheel() {
       }
     };
   }, []);
+
+  const canSpin =
+    verifiedCode && !spinning && (!result || result.type === "retry");
+
+  const buttonText = spinning
+    ? "جاري الدوران..."
+    : result && result.type !== "retry"
+    ? "انتهت اللعبة"
+    : result && result.type === "retry"
+    ? "🎯 جرّب مرة أخرى"
+    : "🎯 دوّر العجلة";
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto">
@@ -302,14 +319,10 @@ export default function SpinWheel() {
       {verifiedCode && (
         <button
           onClick={spin}
-          disabled={spinning || !!result}
+          disabled={!canSpin}
           className="px-10 py-4 rounded-2xl bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-400 hover:to-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xl transition-all shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40"
         >
-          {spinning
-            ? "جاري الدوران..."
-            : result
-            ? "انتهت اللعبة"
-            : "🎯 دوّر العجلة"}
+          {buttonText}
         </button>
       )}
 
@@ -368,8 +381,11 @@ export default function SpinWheel() {
 
           {result.type === "retry" && (
             <div className="pt-4 border-t border-yellow-500/30">
-              <p className="text-yellow-300 text-sm">
-                تواصل معنا للحصول على كود جديد للمحاولة مرة أخرى.
+              <p className="text-yellow-300 text-base font-semibold mb-2">
+                🎁 محاولة إضافية مجانية!
+              </p>
+              <p className="text-yellow-200/80 text-sm">
+                اضغط &quot;جرّب مرة أخرى&quot; لتلف العجلة مرة ثانية
               </p>
             </div>
           )}
