@@ -11,13 +11,13 @@ type Prize = {
 };
 
 const prizes: Prize[] = [
-  { label: "20.000", value: "20.000", color: "#0ea5e9", type: "win", weight: 30 },
-  { label: "35.000", value: "35.000", color: "#1e293b", type: "win", weight: 22 },
-  { label: "50.000", value: "50.000", color: "#0284c7", type: "win", weight: 15 },
-  { label: "75.000", value: "75.000", color: "#1e293b", type: "win", weight: 8 },
-  { label: "100.000", value: "100.000", color: "#0369a1", type: "win", weight: 3 },
-  { label: "حظ أوفر", value: "حظ أوفر", color: "#1e293b", type: "lose", weight: 12 },
-  { label: "محاولة أخرى", value: "محاولة أخرى", color: "#075985", type: "retry", weight: 10 },
+  { label: "20.000", value: "20.000", color: "#0ea5e9", type: "win", weight: 27 },
+  { label: "35.000", value: "35.000", color: "#1e293b", type: "win", weight: 23 },
+  { label: "50.000", value: "50.000", color: "#0284c7", type: "win", weight: 20 },
+  { label: "75.000", value: "75.000", color: "#1e293b", type: "win", weight: 6 },
+  { label: "100.000", value: "100.000", color: "#0369a1", type: "win", weight: 2 },
+  { label: "حظ أوفر", value: "حظ أوفر", color: "#1e293b", type: "lose", weight: 10 },
+  { label: "محاولة أخرى", value: "محاولة أخرى", color: "#075985", type: "retry", weight: 12 },
 ];
 
 const TELEGRAM_CONTACT = "https://t.me/Ichancy_bets";
