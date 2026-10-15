@@ -19,9 +19,6 @@ const prizes: Prize[] = [
   { label: "محاولة أخرى", value: "محاولة أخرى", color: "#075985", type: "retry" },
 ];
 
-// القناة العامة (زر الهيدر)
-const TELEGRAM_CHANNEL = "https://t.me/ichancy_bets1";
-// الحساب الشخصي (للكود)
 const TELEGRAM_CONTACT = "https://t.me/Ichancy_bets";
 
 export default function SpinWheel() {
@@ -135,7 +132,7 @@ export default function SpinWheel() {
   };
 
   const spin = () => {
-    if (spinning || !verifiedCode) return;
+    if (spinning || !verifiedCode || result) return;
     setResult(null);
     setSpinning(true);
 
@@ -205,8 +202,37 @@ export default function SpinWheel() {
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto">
-      {/* Code Input Section */}
-      {!verifiedCode && (
+      {/* Info Banner */}
+      {!verifiedCode && !result && (
+        <div className="w-full p-4 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 text-sm text-center">
+          👇 شاهد العجلة أدناه — لكن تحتاج كود للعب
+        </div>
+      )}
+
+      {/* Wheel - Always visible */}
+      <div className="relative">
+        <div className="absolute top-1/2 -right-2 -translate-y-1/2 z-10 pointer-events-none">
+          <div
+            className="w-0 h-0"
+            style={{
+              borderTop: "15px solid transparent",
+              borderBottom: "15px solid transparent",
+              borderRight: "30px solid #0ea5e9",
+              filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.5))",
+            }}
+          ></div>
+        </div>
+
+        <canvas
+          ref={canvasRef}
+          width={500}
+          height={500}
+          className="max-w-full h-auto"
+        />
+      </div>
+
+      {/* Code Input - Show before verification */}
+      {!verifiedCode && !result && (
         <div className="w-full bg-slate-900 rounded-2xl border border-slate-800 p-6">
           <div className="text-center mb-5">
             <div className="text-4xl mb-2">🔑</div>
@@ -269,30 +295,6 @@ export default function SpinWheel() {
           <span className="font-mono" dir="ltr">
             {verifiedCode}
           </span>
-        </div>
-      )}
-
-      {/* Wheel */}
-      {verifiedCode && (
-        <div className="relative">
-          <div className="absolute top-1/2 -right-2 -translate-y-1/2 z-10 pointer-events-none">
-            <div
-              className="w-0 h-0"
-              style={{
-                borderTop: "15px solid transparent",
-                borderBottom: "15px solid transparent",
-                borderRight: "30px solid #0ea5e9",
-                filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.5))",
-              }}
-            ></div>
-          </div>
-
-          <canvas
-            ref={canvasRef}
-            width={500}
-            height={500}
-            className="max-w-full h-auto"
-          />
         </div>
       )}
 
