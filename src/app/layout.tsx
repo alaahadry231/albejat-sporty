@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cairo, Tajawal } from "next/font/google";
 import "./globals.css";
+import MobileNav from "@/components/MobileNav";
 
 const cairo = Cairo({
   variable: "--font-cairo",
@@ -15,7 +16,7 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "البكجات الرياضية",
+  title: "Ichancy Bet",
   description: "منصة عربية لعرض البكجات الرياضية وبوتات تيليجرام",
 };
 
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${cairo.variable} ${tajawal.variable}`}>
       <body className="min-h-full flex flex-col antialiased bg-slate-950 text-white">
+        <MobileNav />
         {children}
       </body>
     </html>
