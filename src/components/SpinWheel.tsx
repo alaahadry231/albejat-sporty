@@ -7,22 +7,21 @@ type Prize = {
   value: string;
   color: string;
   type: "win" | "retry" | "lose";
-  weight: number; // النسبة المئوية
+  weight: number;
 };
 
 const prizes: Prize[] = [
-  { label: "20.000", value: "20.000", color: "#0ea5e9", type: "win", weight: 27 },
-  { label: "35.000", value: "35.000", color: "#1e293b", type: "win", weight: 23 },
-  { label: "50.000", value: "50.000", color: "#0284c7", type: "win", weight: 20 },
-  { label: "75.000", value: "75.000", color: "#1e293b", type: "win", weight: 6 },
-  { label: "100.000", value: "100.000", color: "#0369a1", type: "win", weight: 2 },
-  { label: "حظ أوفر", value: "حظ أوفر", color: "#1e293b", type: "lose", weight: 10 },
+  { label: "20.000", value: "20.000", color: "#0ea5e9", type: "win", weight: 30 },
+  { label: "35.000", value: "35.000", color: "#1e293b", type: "win", weight: 30 },
+  { label: "50.000", value: "50.000", color: "#0284c7", type: "win", weight: 10 },
+  { label: "75.000", value: "75.000", color: "#1e293b", type: "win", weight: 2 },
+  { label: "100.000", value: "100.000", color: "#0369a1", type: "win", weight: 1 },
+  { label: "حظ أوفر", value: "حظ أوفر", color: "#1e293b", type: "lose", weight: 15 },
   { label: "محاولة أخرى", value: "محاولة أخرى", color: "#075985", type: "retry", weight: 12 },
 ];
 
 const TELEGRAM_CONTACT = "https://t.me/Ichancy_bets";
 
-// دالة لاختيار جائزة حسب الأوزان
 function pickWeightedIndex(items: Prize[]): number {
   const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
   let random = Math.random() * totalWeight;
@@ -154,7 +153,6 @@ export default function SpinWheel() {
     setResult(null);
     setSpinning(true);
 
-    // نختار الجائزة حسب الأوزان
     const randomIndex = pickWeightedIndex(prizes);
 
     const segmentCenter = randomIndex * segmentAngle + segmentAngle / 2;
@@ -196,7 +194,6 @@ export default function SpinWheel() {
         setSpinning(false);
         setResult(finalPrize);
 
-        // إذا "محاولة أخرى" → ما نسجل
         if (finalPrize.type !== "retry") {
           fetch("/api/spin/result", {
             method: "POST",
