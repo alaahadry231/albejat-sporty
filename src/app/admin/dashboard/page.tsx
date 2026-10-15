@@ -32,6 +32,16 @@ type Message = {
   created_at: string;
 };
 
+type SpinCode = {
+  id: number;
+  code: string;
+  is_used: boolean;
+  used_at: string | null;
+  prize_won: string | null;
+  prize_type: string | null;
+  created_at: string;
+};
+
 const emptyPageForm = {
   name: "",
   description: "",
@@ -53,7 +63,7 @@ const emptyBotForm = {
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"pages" | "bots" | "messages">("pages");
+  const [activeTab, setActiveTab] = useState<"pages" | "bots" | "messages" | "spin-codes">("pages");
 
   const [pages, setPages] = useState<SportsPage[]>([]);
   const [loadingPages, setLoadingPages] = useState(true);
@@ -74,6 +84,15 @@ export default function DashboardPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [viewingMessage, setViewingMessage] = useState<Message | null>(null);
+
+  // Spin codes state
+  const [spinCodes, setSpinCodes] = useState<SpinCode[]>([]);
+  const [loadingSpinCodes, setLoadingSpinCodes] = useState(true);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [generateCount, setGenerateCount] = useState("1");
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState("");
+  const [filterUsed, setFilterUsed] = useState<"all" | "used" | "unused">("all");
 
   const fetchPages = async () => {
     try {
@@ -294,12 +313,94 @@ export default function DashboardPage() {
     }
   };
 
+  // Spin codes functions
+  const fetchSpinCodes = async () => {
+    try {
+      const res = await fetch("/api/admin/spin-codes");
+      if (res.status === 401) {
+        router.push("/admin");
+        return;
+      }
+      const json = await res.json();
+      setSpinCodes(json.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingSpinCodes(false);
+    }
+  };
+
+  const handleGenerateCodes = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGenerating(true);
+    setGenerateError("");
+
+    const count = parseInt(generateCount) || 1;
+
+    if (count < 1 || count > 100) {
+      setGenerateError("العدد يجب أن يكون بين 1 و 100");
+      setGenerating(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/admin/spin-codes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ count }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setGenerateError(data.error || "فشل التوليد");
+        setGenerating(false);
+        return;
+      }
+
+      setShowGenerateModal(false);
+      setGenerateCount("1");
+      await fetchSpinCodes();
+    } catch {
+      setGenerateError("تعذر الاتصال بالخادم");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleDeleteSpinCode = async (id: number, code: string) => {
+    if (!confirm(`هل أنت متأكد من حذف الكود "${code}"؟`)) return;
+    try {
+      const res = await fetch(`/api/admin/spin-codes/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        alert("فشل الحذف");
+        return;
+      }
+      await fetchSpinCodes();
+    } catch {
+      alert("تعذر الاتصال بالخادم");
+    }
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    alert(`تم نسخ الكود: ${code}`);
+  };
+
+  const filteredSpinCodes = spinCodes.filter((c) => {
+    if (filterUsed === "used") return c.is_used;
+    if (filterUsed === "unused") return !c.is_used;
+    return true;
+  });
+
   const unreadCount = messages.filter((m) => !m.is_read).length;
+  const unusedCodesCount = spinCodes.filter((c) => !c.is_used).length;
 
   useEffect(() => {
     fetchPages();
     fetchBots();
     fetchMessages();
+    fetchSpinCodes();
   }, []);
 
   const handleLogout = async () => {
@@ -412,6 +513,27 @@ export default function DashboardPage() {
                 }`}
               >
                 {unreadCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("spin-codes")}
+            className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${
+              activeTab === "spin-codes"
+                ? "bg-sky-500 text-slate-900"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            🎟️ أكواد العجلة
+            {unusedCodesCount > 0 && (
+              <span
+                className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs flex items-center justify-center font-bold ${
+                  activeTab === "spin-codes"
+                    ? "bg-slate-900 text-sky-400"
+                    : "bg-green-500 text-white"
+                }`}
+              >
+                {unusedCodesCount}
               </span>
             )}
           </button>
@@ -599,7 +721,242 @@ export default function DashboardPage() {
             )}
           </>
         )}
+
+        {activeTab === "spin-codes" && (
+          <>
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+              <div>
+                <h2 className="text-2xl font-bold">أكواد العجلة</h2>
+                <p className="text-slate-400 text-sm mt-1">
+                  إجمالي: {spinCodes.length} | مستخدمة: {spinCodes.length - unusedCodesCount} | متاحة: {unusedCodesCount}
+                </p>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={fetchSpinCodes}
+                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-sm transition"
+                >
+                  🔄 تحديث
+                </button>
+                <button
+                  onClick={() => {
+                    setShowGenerateModal(true);
+                    setGenerateError("");
+                    setGenerateCount("1");
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold transition"
+                >
+                  + توليد أكواد جديدة
+                </button>
+              </div>
+            </div>
+
+            {/* Filter */}
+            <div className="flex gap-2 mb-4 flex-wrap">
+              <button
+                onClick={() => setFilterUsed("all")}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                  filterUsed === "all"
+                    ? "bg-sky-500 text-slate-900"
+                    : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                }`}
+              >
+                الكل ({spinCodes.length})
+              </button>
+              <button
+                onClick={() => setFilterUsed("unused")}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                  filterUsed === "unused"
+                    ? "bg-green-500 text-white"
+                    : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                }`}
+              >
+                ✅ متاحة ({unusedCodesCount})
+              </button>
+              <button
+                onClick={() => setFilterUsed("used")}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                  filterUsed === "used"
+                    ? "bg-slate-700 text-white"
+                    : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                }`}
+              >
+                🔒 مستخدمة ({spinCodes.length - unusedCodesCount})
+              </button>
+            </div>
+
+            {loadingSpinCodes ? (
+              <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+            ) : filteredSpinCodes.length === 0 ? (
+              <div className="text-center py-20 text-slate-500">
+                {spinCodes.length === 0
+                  ? 'لا توجد أكواد بعد — اضغط "توليد أكواد جديدة"'
+                  : "لا توجد أكواد بهذا الفلتر"}
+              </div>
+            ) : (
+              <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-950 border-b border-slate-800">
+                      <tr>
+                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">الكود</th>
+                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">الحالة</th>
+                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">الجائزة</th>
+                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">التاريخ</th>
+                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">إجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredSpinCodes.map((c) => (
+                        <tr key={c.id} className="border-b border-slate-800 last:border-0">
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => copyCode(c.code)}
+                              className="font-mono text-sky-400 hover:text-sky-300 text-sm font-bold hover:underline"
+                              dir="ltr"
+                              title="اضغط للنسخ"
+                            >
+                              {c.code}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">
+                            {c.is_used ? (
+                              <span className="inline-block px-3 py-1 rounded-full bg-slate-700 text-slate-300 text-xs font-semibold">
+                                🔒 مستخدم
+                              </span>
+                            ) : (
+                              <span className="inline-block px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold border border-green-500/30">
+                                ✅ متاح
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {c.prize_won ? (
+                              <span
+                                className={`font-bold text-sm ${
+                                  c.prize_type === "win"
+                                    ? "text-sky-400"
+                                    : c.prize_type === "retry"
+                                    ? "text-yellow-400"
+                                    : "text-slate-500"
+                                }`}
+                              >
+                                {c.prize_type === "win" && "🎉 "}
+                                {c.prize_type === "lose" && "😢 "}
+                                {c.prize_type === "retry" && "🔄 "}
+                                {c.prize_won}
+                              </span>
+                            ) : (
+                              <span className="text-slate-600 text-sm">—</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 hidden md:table-cell">
+                            <div className="text-xs text-slate-500">
+                              {c.used_at ? (
+                                <>
+                                  <div className="text-slate-400">استُخدم:</div>
+                                  {formatDate(c.used_at)}
+                                </>
+                              ) : (
+                                <>
+                                  <div className="text-slate-400">أُنشئ:</div>
+                                  {formatDate(c.created_at)}
+                                </>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => handleDeleteSpinCode(c.id, c.code)}
+                              className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs border border-red-500/30 transition"
+                            >
+                              حذف
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </section>
+
+      {/* Generate Codes Modal */}
+      {showGenerateModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-md">
+            <div className="flex items-center justify-between p-5 border-b border-slate-800">
+              <h3 className="text-xl font-bold">توليد أكواد جديدة</h3>
+              <button
+                onClick={() => setShowGenerateModal(false)}
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleGenerateCodes} className="p-5 space-y-4">
+              {generateError && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                  {generateError}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">
+                  عدد الأكواد (1-100)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={generateCount}
+                  onChange={(e) => setGenerateCount(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition text-center text-lg font-bold"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-2">
+                {[1, 5, 10, 25, 50].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setGenerateCount(String(n))}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                      generateCount === String(n)
+                        ? "bg-sky-500 text-slate-900"
+                        : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={generating}
+                  className="flex-1 px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition"
+                >
+                  {generating ? "جاري التوليد..." : "توليد"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowGenerateModal(false)}
+                  className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {showPageModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
