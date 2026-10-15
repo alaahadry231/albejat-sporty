@@ -40,13 +40,16 @@ export default function SpinWheel() {
 
     ctx.clearRect(0, 0, size, size);
 
+    // Outer ring
     ctx.beginPath();
     ctx.arc(center, center, radius + 6, 0, Math.PI * 2);
     ctx.fillStyle = "#0ea5e9";
     ctx.fill();
 
+    // Wheel segments
+    // القطاع رقم i يبدأ من الزاوية: i * segmentAngle + rot (بدون -π/2)
     prizes.forEach((prize, i) => {
-      const startAngle = i * segmentAngle + rot - Math.PI / 2;
+      const startAngle = i * segmentAngle + rot;
       const endAngle = startAngle + segmentAngle;
 
       ctx.beginPath();
@@ -60,6 +63,7 @@ export default function SpinWheel() {
       ctx.lineWidth = 2;
       ctx.stroke();
 
+      // Text
       ctx.save();
       ctx.translate(center, center);
       ctx.rotate(startAngle + segmentAngle / 2);
@@ -70,6 +74,7 @@ export default function SpinWheel() {
       ctx.restore();
     });
 
+    // Center circle
     ctx.beginPath();
     ctx.arc(center, center, 40, 0, Math.PI * 2);
     ctx.fillStyle = "#0f172a";
@@ -78,6 +83,7 @@ export default function SpinWheel() {
     ctx.lineWidth = 4;
     ctx.stroke();
 
+    // Center emoji
     ctx.fillStyle = "#0ea5e9";
     ctx.font = "bold 24px Cairo, sans-serif";
     ctx.textAlign = "center";
@@ -96,15 +102,14 @@ export default function SpinWheel() {
 
     const randomIndex = Math.floor(Math.random() * prizes.length);
 
-    // القطاع randomIndex مركزه بالنسبة للعجلة عند: randomIndex * segmentAngle + segmentAngle/2
-    // في drawWheel: startAngle = i * segmentAngle + rot - π/2
-    // مركز القطاع بعد rotation = i * segmentAngle + segmentAngle/2 + rot - π/2
-    // نبغى هذا = 0 (زاوية المؤشر الفعلية)
-    // يعني: i * segmentAngle + segmentAngle/2 + rot - π/2 = 0 (mod 2π)
-    // rot = π/2 - i * segmentAngle - segmentAngle/2 (mod 2π)
+    // المؤشر الآن على اليمين (زاوية 0)
+    // مركز القطاع i في العجلة = i * segmentAngle + segmentAngle/2
+    // بعد rotation، مركز القطاع = i * segmentAngle + segmentAngle/2 + rotation
+    // نبغى هذا = 0 (mod 2π) لأن المؤشر على اليمين
+    // rotation = -i * segmentAngle - segmentAngle/2
 
     const segmentCenter = randomIndex * segmentAngle + segmentAngle / 2;
-    const targetRotation = Math.PI / 2 - segmentCenter;
+    const targetRotation = -segmentCenter;
 
     const currentRotation = rotationRef.current;
     const fullTurns = 6 + Math.floor(Math.random() * 3);
@@ -156,13 +161,14 @@ export default function SpinWheel() {
   return (
     <div className="flex flex-col items-center gap-6">
       <div className="relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+        {/* Pointer on RIGHT side */}
+        <div className="absolute top-1/2 -right-2 -translate-y-1/2 z-10 pointer-events-none">
           <div
             className="w-0 h-0"
             style={{
-              borderLeft: "15px solid transparent",
-              borderRight: "15px solid transparent",
-              borderTop: "30px solid #0ea5e9",
+              borderTop: "15px solid transparent",
+              borderBottom: "15px solid transparent",
+              borderRight: "30px solid #0ea5e9",
               filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.5))",
             }}
           ></div>
