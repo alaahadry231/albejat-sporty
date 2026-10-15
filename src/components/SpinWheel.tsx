@@ -21,17 +21,14 @@ const prizes: Prize[] = [
 
 export default function SpinWheel() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rotationRef = useRef(0);
+  const animationRef = useRef<number | null>(null);
   const [spinning, setSpinning] = useState(false);
-  const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<Prize | null>(null);
 
   const segmentAngle = (Math.PI * 2) / prizes.length;
 
-  useEffect(() => {
-    drawWheel(rotation);
-  }, [rotation]);
-
-  const drawWheel = (currentRotation: number) => {
+  const drawWheel = (rot: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -51,10 +48,9 @@ export default function SpinWheel() {
 
     // Wheel segments
     prizes.forEach((prize, i) => {
-      const startAngle = i * segmentAngle + currentRotation - Math.PI / 2;
+      const startAngle = i * segmentAngle + rot - Math.PI / 2;
       const endAngle = startAngle + segmentAngle;
 
-      // Segment
       ctx.beginPath();
       ctx.moveTo(center, center);
       ctx.arc(center, center, radius, startAngle, endAngle);
@@ -62,7 +58,6 @@ export default function SpinWheel() {
       ctx.fillStyle = prize.color;
       ctx.fill();
 
-      // Border
       ctx.strokeStyle = "#0f172a";
       ctx.lineWidth = 2;
       ctx.stroke();
@@ -87,73 +82,96 @@ export default function SpinWheel() {
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    // Center text
+    // Center emoji
     ctx.fillStyle = "#0ea5e9";
-    ctx.font = "bold 18px Cairo, sans-serif";
+    ctx.font = "bold 24px Cairo, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("🎯", center, center);
   };
 
-const spin = () => {
-  if (spinning) return;
-  setResult(null);
-  setSpinning(true);
+  useEffect(() => {
+    drawWheel(0);
+  }, []);
 
-  const randomIndex = Math.floor(Math.random() * prizes.length);
-  const spins = 5 + Math.random() * 3;
+  const spin = () => {
+    if (spinning) return;
+    setResult(null);
+    setSpinning(true);
 
-  // حساب الزاوية اللي لازم العجلة توصلها
-  // المؤشر في الأعلى (زاوية -π/2)
-  // كل قطاع بحجم segmentAngle
-  // مركز القطاع رقم randomIndex = randomIndex * segmentAngle + segmentAngle/2
-  // لازم القطاع يوقف بحيث مركزه تحت المؤشر
-  // يعني: زاوية القطاع + دوران العجلة = -π/2 (mod 2π)
-  // rotation + (randomIndex * segmentAngle + segmentAngle/2) = -π/2
-  // rotation = -π/2 - (randomIndex * segmentAngle + segmentAngle/2)
+    const randomIndex = Math.floor(Math.random() * prizes.length);
 
-  const centerOfSegment = randomIndex * segmentAngle + segmentAngle / 2;
-  const targetRotation =
-    spins * Math.PI * 2 -
-    Math.PI / 2 -
-    centerOfSegment;
+    // المؤشر في الأعلى: -π/2
+    // مركز القطاع المختار بالنسبة لبداية العجلة: randomIndex * segmentAngle + segmentAngle/2
+    // بدنا مركز القطاع يوصل لزاوية -π/2
+    // rotation + randomIndex * segmentAngle + segmentAngle/2 = -π/2 (mod 2π)
+    // rotation = -π/2 - randomIndex * segmentAngle - segmentAngle/2 (mod 2π)
 
-  const startRotation = rotation;
-  const duration = 5000;
-  const startTime = performance.now();
+    const segmentCenter = randomIndex * segmentAngle + segmentAngle / 2;
+    const targetAngle = -Math.PI / 2 - segmentCenter;
 
-  const animate = (currentTime: number) => {
-    const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / duration, 1);
+    // نضيف دورات كاملة
+    const currentRotation = rotationRef.current;
+    const fullTurns = 6 + Math.floor(Math.random() * 3); // 6-8 دورات
 
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const current = startRotation + (targetRotation - startRotation) * eased;
+    // نحسب الدوران الإضافي من الوضع الحالي
+    // نبغى الدوران النهائي = currentRotation + extraRotation
+    // بحيث currentRotation + extraRotation ≡ targetAngle (mod 2π)
+    const currentMod = currentRotation % (Math.PI * 2);
+    let delta = targetAngle - currentMod;
+    // نضمن delta موجب
+    while (delta < 0) delta += Math.PI * 2;
+    // نضيف دورات
+    delta += fullTurns * Math.PI * 2;
 
-    setRotation(current);
+    const startRotation = currentRotation;
+    const endRotation = currentRotation + delta;
 
-    if (progress < 1) {
-      requestAnimationFrame(animate);
-    } else {
-      setSpinning(false);
-      setResult(prizes[randomIndex]);
-    }
+    const duration = 5000;
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // easeOutQuart - يبدأ سريع ويبطئ في النهاية
+      const eased = 1 - Math.pow(1 - progress, 4);
+      const current = startRotation + (endRotation - startRotation) * eased;
+
+      rotationRef.current = current;
+      drawWheel(current);
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        setSpinning(false);
+        setResult(prizes[randomIndex]);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
   };
 
-  requestAnimationFrame(animate);
-};
+  useEffect(() => {
+    return () => {
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-6">
-      {/* Pointer */}
+      {/* Pointer + Wheel */}
       <div className="relative">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
+        {/* Pointer at top */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
           <div
             className="w-0 h-0"
             style={{
               borderLeft: "15px solid transparent",
               borderRight: "15px solid transparent",
               borderTop: "30px solid #0ea5e9",
-              transform: "translateY(-220px)",
               filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.5))",
             }}
           ></div>
@@ -179,7 +197,7 @@ const spin = () => {
       {/* Result */}
       {result && (
         <div
-          className={`mt-4 px-6 py-4 rounded-2xl border-2 text-center animate-pulse ${
+          className={`mt-4 px-6 py-4 rounded-2xl border-2 text-center ${
             result.type === "win"
               ? "bg-sky-500/10 border-sky-500/50 text-sky-400"
               : result.type === "retry"
