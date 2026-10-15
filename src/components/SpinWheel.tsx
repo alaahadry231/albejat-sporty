@@ -7,19 +7,35 @@ type Prize = {
   value: string;
   color: string;
   type: "win" | "retry" | "lose";
+  weight: number; // النسبة المئوية
 };
 
 const prizes: Prize[] = [
-  { label: "20.000", value: "20.000", color: "#0ea5e9", type: "win" },
-  { label: "35.000", value: "35.000", color: "#1e293b", type: "win" },
-  { label: "50.000", value: "50.000", color: "#0284c7", type: "win" },
-  { label: "75.000", value: "75.000", color: "#1e293b", type: "win" },
-  { label: "100.000", value: "100.000", color: "#0369a1", type: "win" },
-  { label: "حظ أوفر", value: "حظ أوفر", color: "#1e293b", type: "lose" },
-  { label: "محاولة أخرى", value: "محاولة أخرى", color: "#075985", type: "retry" },
+  { label: "20.000", value: "20.000", color: "#0ea5e9", type: "win", weight: 30 },
+  { label: "35.000", value: "35.000", color: "#1e293b", type: "win", weight: 22 },
+  { label: "50.000", value: "50.000", color: "#0284c7", type: "win", weight: 15 },
+  { label: "75.000", value: "75.000", color: "#1e293b", type: "win", weight: 8 },
+  { label: "100.000", value: "100.000", color: "#0369a1", type: "win", weight: 3 },
+  { label: "حظ أوفر", value: "حظ أوفر", color: "#1e293b", type: "lose", weight: 12 },
+  { label: "محاولة أخرى", value: "محاولة أخرى", color: "#075985", type: "retry", weight: 10 },
 ];
 
 const TELEGRAM_CONTACT = "https://t.me/Ichancy_bets";
+
+// دالة لاختيار جائزة حسب الأوزان
+function pickWeightedIndex(items: Prize[]): number {
+  const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+  let random = Math.random() * totalWeight;
+
+  for (let i = 0; i < items.length; i++) {
+    if (random < items[i].weight) {
+      return i;
+    }
+    random -= items[i].weight;
+  }
+
+  return items.length - 1;
+}
 
 export default function SpinWheel() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -133,13 +149,13 @@ export default function SpinWheel() {
 
   const spin = () => {
     if (spinning || !verifiedCode) return;
-    // منع اللف إلا إذا ما في نتيجة، أو النتيجة "محاولة أخرى"
     if (result && result.type !== "retry") return;
 
     setResult(null);
     setSpinning(true);
 
-    const randomIndex = Math.floor(Math.random() * prizes.length);
+    // نختار الجائزة حسب الأوزان
+    const randomIndex = pickWeightedIndex(prizes);
 
     const segmentCenter = randomIndex * segmentAngle + segmentAngle / 2;
     const targetRotation = -segmentCenter;
@@ -180,7 +196,7 @@ export default function SpinWheel() {
         setSpinning(false);
         setResult(finalPrize);
 
-        // إذا "محاولة أخرى" → ما نسجل، ونخلي الزائر يلف مرة ثانية
+        // إذا "محاولة أخرى" → ما نسجل
         if (finalPrize.type !== "retry") {
           fetch("/api/spin/result", {
             method: "POST",
@@ -219,14 +235,12 @@ export default function SpinWheel() {
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto">
-      {/* Info Banner */}
       {!verifiedCode && !result && (
         <div className="w-full p-4 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 text-sm text-center">
           👇 شاهد العجلة أدناه — لكن تحتاج كود للعب
         </div>
       )}
 
-      {/* Wheel - Always visible */}
       <div className="relative">
         <div className="absolute top-1/2 -right-2 -translate-y-1/2 z-10 pointer-events-none">
           <div
@@ -248,7 +262,6 @@ export default function SpinWheel() {
         />
       </div>
 
-      {/* Code Input - Show before verification */}
       {!verifiedCode && !result && (
         <div className="w-full bg-slate-900 rounded-2xl border border-slate-800 p-6">
           <div className="text-center mb-5">
@@ -304,7 +317,6 @@ export default function SpinWheel() {
         </div>
       )}
 
-      {/* Verified Badge */}
       {verifiedCode && (
         <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-green-500/10 border border-green-500/40 text-green-400 text-sm font-semibold">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
@@ -315,7 +327,6 @@ export default function SpinWheel() {
         </div>
       )}
 
-      {/* Spin Button */}
       {verifiedCode && (
         <button
           onClick={spin}
@@ -326,7 +337,6 @@ export default function SpinWheel() {
         </button>
       )}
 
-      {/* Result */}
       {result && (
         <div
           className={`w-full px-6 py-6 rounded-2xl border-2 text-center ${
