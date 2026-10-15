@@ -42,6 +42,30 @@ type SpinCode = {
   created_at: string;
 };
 
+type Match = {
+  id: number;
+  team1: string;
+  team2: string;
+  match_date: string;
+  status: string;
+  predictions_open: boolean;
+  final_score1: number | null;
+  final_score2: number | null;
+  created_at: string;
+  predictions_count: number;
+};
+
+type Prediction = {
+  id: number;
+  match_id: number;
+  name: string;
+  telegram: string;
+  score1: number;
+  score2: number;
+  is_winner: boolean;
+  created_at: string;
+};
+
 const emptyPageForm = {
   name: "",
   description: "",
@@ -60,10 +84,16 @@ const emptyBotForm = {
   is_published: true,
 };
 
+const emptyMatchForm = {
+  team1: "",
+  team2: "",
+  match_date: "",
+};
+
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"pages" | "bots" | "messages" | "spin-codes">("pages");
+  const [activeTab, setActiveTab] = useState<"pages" | "bots" | "messages" | "spin-codes" | "matches">("pages");
 
   const [pages, setPages] = useState<SportsPage[]>([]);
   const [loadingPages, setLoadingPages] = useState(true);
@@ -96,6 +126,33 @@ export default function DashboardPage() {
   // حالة العجلة
   const [wheelEnabled, setWheelEnabled] = useState<boolean | null>(null);
   const [togglingWheel, setTogglingWheel] = useState(false);
+
+  // Matches
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loadingMatches, setLoadingMatches] = useState(true);
+  const [showMatchModal, setShowMatchModal] = useState(false);
+  const [matchForm, setMatchForm] = useState(emptyMatchForm);
+  const [savingMatch, setSavingMatch] = useState(false);
+  const [matchError, setMatchError] = useState("");
+
+  // View predictions
+  const [viewingPredictions, setViewingPredictions] = useState<{
+    match: Match | null;
+    predictions: Prediction[];
+    loading: boolean;
+  }>({
+    match: null,
+    predictions: [],
+    loading: false,
+  });
+
+  // Finish match modal
+  const [showFinishModal, setShowFinishModal] = useState(false);
+  const [finishMatch, setFinishMatch] = useState<Match | null>(null);
+  const [finishScore1, setFinishScore1] = useState("0");
+  const [finishScore2, setFinishScore2] = useState("0");
+  const [finishingMatch, setFinishingMatch] = useState(false);
+  const [finishError, setFinishError] = useState("");
 
   const fetchPages = async () => {
     try {
@@ -389,7 +446,6 @@ export default function DashboardPage() {
     alert(`تم نسخ الكود: ${code}`);
   };
 
-  // حالة العجلة
   const fetchWheelStatus = async () => {
     try {
       const res = await fetch("/api/admin/spin-status");
@@ -437,6 +493,191 @@ export default function DashboardPage() {
     }
   };
 
+  // ============ Matches ============
+  const fetchMatches = async () => {
+    try {
+      const res = await fetch("/api/admin/matches");
+      if (res.status === 401) {
+        router.push("/admin");
+        return;
+      }
+      const json = await res.json();
+      setMatches(json.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMatches(false);
+    }
+  };
+
+  const openAddMatch = () => {
+    setMatchForm(emptyMatchForm);
+    setMatchError("");
+    setShowMatchModal(true);
+  };
+
+  const handleSaveMatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingMatch(true);
+    setMatchError("");
+
+    if (!matchForm.team1 || !matchForm.team2 || !matchForm.match_date) {
+      setMatchError("جميع الحقول مطلوبة");
+      setSavingMatch(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/admin/matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(matchForm),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMatchError(data.error || "حدث خطأ");
+        setSavingMatch(false);
+        return;
+      }
+
+      setShowMatchModal(false);
+      setMatchForm(emptyMatchForm);
+      await fetchMatches();
+    } catch {
+      setMatchError("تعذر الاتصال بالخادم");
+    } finally {
+      setSavingMatch(false);
+    }
+  };
+
+  const handleTogglePredictions = async (match: Match) => {
+    const action = match.predictions_open ? "إيقاف" : "فتح";
+    if (!confirm(`هل أنت متأكد من ${action} التوقعات على "${match.team1} × ${match.team2}"؟`)) return;
+
+    try {
+      const res = await fetch(`/api/admin/matches/${match.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "toggle_predictions" }),
+      });
+
+      if (!res.ok) {
+        alert("فشل التحديث");
+        return;
+      }
+
+      await fetchMatches();
+    } catch {
+      alert("تعذر الاتصال بالخادم");
+    }
+  };
+
+  const handleDeleteMatch = async (match: Match) => {
+    if (!confirm(`هل أنت متأكد من حذف "${match.team1} × ${match.team2}"؟ سيتم حذف جميع التوقعات المرتبطة.`)) return;
+
+    try {
+      const res = await fetch(`/api/admin/matches/${match.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        alert("فشل الحذف");
+        return;
+      }
+      await fetchMatches();
+    } catch {
+      alert("تعذر الاتصال بالخادم");
+    }
+  };
+
+  const openFinishModal = (match: Match) => {
+    setFinishMatch(match);
+    setFinishScore1("0");
+    setFinishScore2("0");
+    setFinishError("");
+    setShowFinishModal(true);
+  };
+
+  const handleFinishMatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!finishMatch) return;
+
+    setFinishingMatch(true);
+    setFinishError("");
+
+    try {
+      const res = await fetch(`/api/admin/matches/${finishMatch.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "finish",
+          final_score1: parseInt(finishScore1),
+          final_score2: parseInt(finishScore2),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setFinishError(data.error || "حدث خطأ");
+        setFinishingMatch(false);
+        return;
+      }
+
+      setShowFinishModal(false);
+      setFinishMatch(null);
+      await fetchMatches();
+    } catch {
+      setFinishError("تعذر الاتصال بالخادم");
+    } finally {
+      setFinishingMatch(false);
+    }
+  };
+
+  const openPredictions = async (match: Match) => {
+    setViewingPredictions({
+      match,
+      predictions: [],
+      loading: true,
+    });
+
+    try {
+      const res = await fetch(`/api/admin/predictions?match_id=${match.id}`);
+      const json = await res.json();
+      setViewingPredictions((prev) => ({
+        ...prev,
+        predictions: json.data || [],
+        loading: false,
+      }));
+    } catch {
+      setViewingPredictions((prev) => ({
+        ...prev,
+        loading: false,
+      }));
+    }
+  };
+
+  const handleToggleWinner = async (predictionId: number) => {
+    try {
+      const res = await fetch(`/api/admin/predictions/${predictionId}`, {
+        method: "PUT",
+      });
+
+      if (!res.ok) {
+        alert("فشل التحديث");
+        return;
+      }
+
+      setViewingPredictions((prev) => ({
+        ...prev,
+        predictions: prev.predictions.map((p) =>
+          p.id === predictionId ? { ...p, is_winner: !p.is_winner } : p
+        ),
+      }));
+    } catch {
+      alert("تعذر الاتصال بالخادم");
+    }
+  };
+
   const filteredSpinCodes = spinCodes.filter((c) => {
     if (filterUsed === "used") return c.is_used;
     if (filterUsed === "unused") return !c.is_used;
@@ -445,6 +686,7 @@ export default function DashboardPage() {
 
   const unreadCount = messages.filter((m) => !m.is_read).length;
   const unusedCodesCount = spinCodes.filter((c) => !c.is_used).length;
+  const upcomingMatchesCount = matches.filter((m) => m.status === "upcoming").length;
 
   useEffect(() => {
     fetchPages();
@@ -452,6 +694,7 @@ export default function DashboardPage() {
     fetchMessages();
     fetchSpinCodes();
     fetchWheelStatus();
+    fetchMatches();
   }, []);
 
   const handleLogout = async () => {
@@ -596,6 +839,27 @@ export default function DashboardPage() {
             }`}
           >
             🤖 البوتات
+          </button>
+          <button
+            onClick={() => setActiveTab("matches")}
+            className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${
+              activeTab === "matches"
+                ? "bg-sky-500 text-slate-900"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            🎯 توقع واربح
+            {upcomingMatchesCount > 0 && (
+              <span
+                className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs flex items-center justify-center font-bold ${
+                  activeTab === "matches"
+                    ? "bg-slate-900 text-sky-400"
+                    : "bg-sky-500 text-white"
+                }`}
+              >
+                {upcomingMatchesCount}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setActiveTab("messages")}
@@ -762,6 +1026,127 @@ export default function DashboardPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === "matches" && (
+          <>
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+              <div>
+                <h2 className="text-2xl font-bold">إدارة المباريات</h2>
+                <p className="text-slate-400 text-sm mt-1">
+                  إجمالي: {matches.length} | قادمة: {upcomingMatchesCount}
+                </p>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={fetchMatches}
+                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-sm transition"
+                >
+                  🔄 تحديث
+                </button>
+                <button
+                  onClick={openAddMatch}
+                  className="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold transition"
+                >
+                  + إضافة مباراة
+                </button>
+              </div>
+            </div>
+
+            {loadingMatches ? (
+              <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+            ) : matches.length === 0 ? (
+              <div className="text-center py-20 text-slate-500">
+                لا توجد مباريات بعد — اضغط &quot;إضافة مباراة&quot;
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {matches.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`bg-slate-900 rounded-2xl border p-5 ${
+                      m.status === "finished"
+                        ? "border-slate-800 opacity-75"
+                        : m.predictions_open
+                        ? "border-sky-500/30"
+                        : "border-yellow-500/30"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-lg font-bold mb-1">
+                          {m.team1} <span className="text-slate-500">×</span> {m.team2}
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          📅 {formatDate(m.match_date)}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {m.status === "upcoming" ? (
+                          m.predictions_open ? (
+                            <span className="inline-block px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold border border-green-500/30">
+                              ✅ التوقعات مفتوحة
+                            </span>
+                          ) : (
+                            <span className="inline-block px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-semibold border border-yellow-500/30">
+                              🔒 التوقعات موقفة
+                            </span>
+                          )
+                        ) : (
+                          <span className="inline-block px-3 py-1 rounded-full bg-slate-700 text-slate-300 text-xs font-semibold">
+                            🏁 انتهت: {m.final_score1} - {m.final_score2}
+                          </span>
+                        )}
+
+                        <span className="inline-block px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 text-xs font-semibold border border-sky-500/30">
+                          👥 {m.predictions_count} توقع
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        onClick={() => openPredictions(m)}
+                        className="px-4 py-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-sm font-semibold border border-sky-500/30 transition"
+                      >
+                        👥 التوقعات ({m.predictions_count})
+                      </button>
+
+                      {m.status === "upcoming" && (
+                        <>
+                          <button
+                            onClick={() => handleTogglePredictions(m)}
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition border ${
+                              m.predictions_open
+                                ? "bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                                : "bg-green-500/10 hover:bg-green-500/20 text-green-400 border-green-500/30"
+                            }`}
+                          >
+                            {m.predictions_open ? "⏸️ إيقاف التوقعات" : "▶️ فتح التوقعات"}
+                          </button>
+
+                          <button
+                            onClick={() => openFinishModal(m)}
+                            className="px-4 py-2 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 text-sm font-semibold border border-green-500/30 transition"
+                          >
+                            ✅ إنهاء المباراة
+                          </button>
+                        </>
+                      )}
+
+                      <button
+                        onClick={() => handleDeleteMatch(m)}
+                        className="px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold border border-red-500/30 transition"
+                      >
+                        🗑️ حذف
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </>
@@ -985,6 +1370,7 @@ export default function DashboardPage() {
         )}
       </section>
 
+      {/* Generate Codes Modal */}
       {showGenerateModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-md">
@@ -1054,6 +1440,252 @@ export default function DashboardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Match Modal */}
+      {showMatchModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-md my-8">
+            <div className="flex items-center justify-between p-5 border-b border-slate-800">
+              <h3 className="text-xl font-bold">إضافة مباراة</h3>
+              <button
+                onClick={() => setShowMatchModal(false)}
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveMatch} className="p-5 space-y-4">
+              {matchError && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                  {matchError}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">الفريق الأول *</label>
+                <input
+                  type="text"
+                  value={matchForm.team1}
+                  onChange={(e) => setMatchForm({ ...matchForm, team1: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+                  placeholder="مثال: ريال مدريد"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">الفريق الثاني *</label>
+                <input
+                  type="text"
+                  value={matchForm.team2}
+                  onChange={(e) => setMatchForm({ ...matchForm, team2: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+                  placeholder="مثال: برشلونة"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">موعد المباراة *</label>
+                <input
+                  type="datetime-local"
+                  value={matchForm.match_date}
+                  onChange={(e) => setMatchForm({ ...matchForm, match_date: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+                  required
+                  dir="ltr"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={savingMatch}
+                  className="flex-1 px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition"
+                >
+                  {savingMatch ? "جاري الحفظ..." : "إضافة المباراة"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowMatchModal(false)}
+                  className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Finish Match Modal */}
+      {showFinishModal && finishMatch && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-md">
+            <div className="flex items-center justify-between p-5 border-b border-slate-800">
+              <div>
+                <h3 className="text-xl font-bold">✅ إنهاء المباراة</h3>
+                <p className="text-sm text-slate-400 mt-1">
+                  {finishMatch.team1} × {finishMatch.team2}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowFinishModal(false)}
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleFinishMatch} className="p-5 space-y-4">
+              {finishError && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                  {finishError}
+                </div>
+              )}
+
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-yellow-400 text-sm text-center">
+                ⚠️ بعد الإنهاء، ما رح يقدر الزوار يتوقعوا، ورح تظهر النتيجة في صفحة الزوار
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-3 text-center">
+                  النتيجة النهائية
+                </label>
+                <div className="flex items-center justify-center gap-4">
+                  <div className="flex-1 text-center">
+                    <div className="text-sm text-slate-400 mb-2 truncate">
+                      {finishMatch.team1}
+                    </div>
+                    <input
+                      type="number"
+                      value={finishScore1}
+                      onChange={(e) => setFinishScore1(e.target.value)}
+                      min="0"
+                      max="50"
+                      className="w-20 h-20 mx-auto text-center text-3xl font-bold rounded-xl bg-slate-950 border-2 border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+                    />
+                  </div>
+                  <div className="text-slate-500 text-2xl">-</div>
+                  <div className="flex-1 text-center">
+                    <div className="text-sm text-slate-400 mb-2 truncate">
+                      {finishMatch.team2}
+                    </div>
+                    <input
+                      type="number"
+                      value={finishScore2}
+                      onChange={(e) => setFinishScore2(e.target.value)}
+                      min="0"
+                      max="50"
+                      className="w-20 h-20 mx-auto text-center text-3xl font-bold rounded-xl bg-slate-950 border-2 border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={finishingMatch}
+                  className="flex-1 px-6 py-3 rounded-xl bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white font-bold transition"
+                >
+                  {finishingMatch ? "جاري الحفظ..." : "✅ تأكيد الإنهاء"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowFinishModal(false)}
+                  className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Predictions Modal */}
+      {viewingPredictions.match !== null && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-3xl my-8 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-slate-800">
+              <div>
+                <h3 className="text-xl font-bold">👥 التوقعات</h3>
+                <p className="text-sm text-slate-400 mt-1">
+                  {viewingPredictions.match.team1} × {viewingPredictions.match.team2}
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  setViewingPredictions({ match: null, predictions: [], loading: false })
+                }
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto">
+              {viewingPredictions.loading ? (
+                <div className="text-center py-10 text-slate-500">جاري التحميل...</div>
+              ) : viewingPredictions.predictions.length === 0 ? (
+                <div className="text-center py-10 text-slate-500">
+                  <div className="text-5xl mb-3">📭</div>
+                  <p>لا توجد توقعات بعد</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {viewingPredictions.predictions.map((p) => (
+                    <div
+                      key={p.id}
+                      className={`flex items-center gap-3 p-4 rounded-xl border transition ${
+                        p.is_winner
+                          ? "bg-green-500/5 border-green-500/40"
+                          : "bg-slate-950 border-slate-800"
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="font-bold truncate">{p.name}</div>
+                          {p.is_winner && (
+                            <span className="inline-block px-2 py-0.5 rounded-full bg-green-500 text-white text-xs font-bold">
+                              🏆 فائز
+                            </span>
+                          )}
+                        </div>
+                        <a
+                          href={`https://t.me/${p.telegram.replace("@", "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-sky-400 hover:underline font-mono"
+                          dir="ltr"
+                        >
+                          {p.telegram}
+                        </a>
+                      </div>
+                      <div className="px-4 py-2 rounded-lg bg-sky-500/20 border border-sky-500/30 text-sky-400 font-bold text-lg shrink-0">
+                        {p.score1} - {p.score2}
+                      </div>
+                      <button
+                        onClick={() => handleToggleWinner(p.id)}
+                        className={`px-3 py-2 rounded-lg text-xs font-semibold transition border shrink-0 ${
+                          p.is_winner
+                            ? "bg-green-500 text-white border-green-500 hover:bg-green-600"
+                            : "bg-slate-800 hover:bg-slate-700 text-white border-slate-700"
+                        }`}
+                        title={p.is_winner ? "إلغاء الفوز" : "تحديد كفائز"}
+                      >
+                        {p.is_winner ? "✅" : "🏆"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

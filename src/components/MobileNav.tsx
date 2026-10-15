@@ -7,6 +7,7 @@ const navItems = [
   { href: "/", label: "الرئيسية" },
   { href: "/pages", label: "البكجات الرياضية" },
   { href: "/bots", label: "بوتات تيليجرام" },
+  { href: "/predict", label: "🎯 توقع واربح" },
   { href: "/spin", label: "🎡 عجلة الفرص" },
   { href: "/contact", label: "اتصل بنا" },
 ];
