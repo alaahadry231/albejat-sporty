@@ -95,42 +95,52 @@ export default function SpinWheel() {
     ctx.fillText("🎯", center, center);
   };
 
-  const spin = () => {
-    if (spinning) return;
-    setResult(null);
-    setSpinning(true);
+const spin = () => {
+  if (spinning) return;
+  setResult(null);
+  setSpinning(true);
 
-    const randomIndex = Math.floor(Math.random() * prizes.length);
-    const spins = 5 + Math.random() * 3;
-    const targetRotation =
-      spins * Math.PI * 2 +
-      (Math.PI * 2 - (randomIndex * segmentAngle + segmentAngle / 2));
+  const randomIndex = Math.floor(Math.random() * prizes.length);
+  const spins = 5 + Math.random() * 3;
 
-    const startRotation = rotation % (Math.PI * 2);
-    const totalRotation = targetRotation;
-    const duration = 5000;
-    const startTime = performance.now();
+  // حساب الزاوية اللي لازم العجلة توصلها
+  // المؤشر في الأعلى (زاوية -π/2)
+  // كل قطاع بحجم segmentAngle
+  // مركز القطاع رقم randomIndex = randomIndex * segmentAngle + segmentAngle/2
+  // لازم القطاع يوقف بحيث مركزه تحت المؤشر
+  // يعني: زاوية القطاع + دوران العجلة = -π/2 (mod 2π)
+  // rotation + (randomIndex * segmentAngle + segmentAngle/2) = -π/2
+  // rotation = -π/2 - (randomIndex * segmentAngle + segmentAngle/2)
 
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+  const centerOfSegment = randomIndex * segmentAngle + segmentAngle / 2;
+  const targetRotation =
+    spins * Math.PI * 2 -
+    Math.PI / 2 -
+    centerOfSegment;
 
-      // Easing: easeOutCubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = startRotation + (totalRotation - startRotation) * eased;
+  const startRotation = rotation;
+  const duration = 5000;
+  const startTime = performance.now();
 
-      setRotation(current);
+  const animate = (currentTime: number) => {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
 
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        setSpinning(false);
-        setResult(prizes[randomIndex]);
-      }
-    };
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = startRotation + (targetRotation - startRotation) * eased;
 
-    requestAnimationFrame(animate);
+    setRotation(current);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      setSpinning(false);
+      setResult(prizes[randomIndex]);
+    }
   };
+
+  requestAnimationFrame(animate);
+};
 
   return (
     <div className="flex flex-col items-center gap-6">
