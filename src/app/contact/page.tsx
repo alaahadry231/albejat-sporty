@@ -75,6 +75,7 @@ export default function ContactPage() {
             <a href="/" className="text-slate-300 hover:text-sky-400 transition">الرئيسية</a>
             <a href="/pages" className="text-slate-300 hover:text-sky-400 transition">البكجات الرياضية</a>
             <a href="/bots" className="text-slate-300 hover:text-sky-400 transition">بوتات تيليجرام</a>
+            <a href="/spin" className="text-slate-300 hover:text-sky-400 transition">🎡 عجلة الفرص</a>
             <a href="/contact" className="text-sky-400 font-semibold">اتصل بنا</a>
           </nav>
         </div>

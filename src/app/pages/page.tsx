@@ -86,6 +86,7 @@ export default function PagesPage() {
             <a href="/" className="text-slate-300 hover:text-sky-400 transition">الرئيسية</a>
             <a href="/pages" className="text-sky-400 font-semibold">البكجات الرياضية</a>
             <a href="/bots" className="text-slate-300 hover:text-sky-400 transition">بوتات تيليجرام</a>
+            <a href="/spin" className="text-slate-300 hover:text-sky-400 transition">🎡 عجلة الفرص</a>
             <a href="/contact" className="text-slate-300 hover:text-sky-400 transition">اتصل بنا</a>
           </nav>
         </div>

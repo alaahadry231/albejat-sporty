@@ -15,8 +15,8 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "Ichancy Bet",
-  description: "منصة عربية لعرض Ichancy Bet وبوتات تيليجرام",
+  title: "البكجات الرياضية",
+  description: "منصة عربية لعرض البكجات الرياضية وبوتات تيليجرام",
 };
 
 export default function RootLayout({

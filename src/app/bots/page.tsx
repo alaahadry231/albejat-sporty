@@ -68,6 +68,7 @@ export default function BotsPage() {
             <a href="/" className="text-slate-300 hover:text-sky-400 transition">الرئيسية</a>
             <a href="/pages" className="text-slate-300 hover:text-sky-400 transition">البكجات الرياضية</a>
             <a href="/bots" className="text-sky-400 font-semibold">بوتات تيليجرام</a>
+            <a href="/spin" className="text-slate-300 hover:text-sky-400 transition">🎡 عجلة الفرص</a>
             <a href="/contact" className="text-slate-300 hover:text-sky-400 transition">اتصل بنا</a>
           </nav>
         </div>
