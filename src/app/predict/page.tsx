@@ -49,6 +49,10 @@ export default function PredictPage() {
   const [submittedPredictions, setSubmittedPredictions] = useState<
     SubmittedPrediction[]
   >([]);
+
+  // المباريات اللي انحفظت صورها (تختفي بعد 5 ثواني)
+  const [hiddenMatches, setHiddenMatches] = useState<number[]>([]);
+
   const [formData, setFormData] = useState<
     Record<
       number,
@@ -77,6 +81,9 @@ export default function PredictPage() {
   });
 
   const [savingImage, setSavingImage] = useState<number | null>(null);
+  const [imageSavedMessage, setImageSavedMessage] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     trackView("/predict");
@@ -215,6 +222,14 @@ export default function PredictPage() {
       link.download = `prediction-${matchId}.png`;
       link.href = dataUrl;
       link.click();
+
+      // نعرض رسالة النجاح + نخفي المباراة بعد 5 ثواني
+      setImageSavedMessage(matchId);
+
+      setTimeout(() => {
+        setHiddenMatches((prev) => [...prev, matchId]);
+        setImageSavedMessage(null);
+      }, 5000);
     } catch (err) {
       console.error("Screenshot error:", err);
       alert("تعذر حفظ الصورة، جرّب مرة أخرى");
@@ -272,6 +287,11 @@ export default function PredictPage() {
     }
   };
 
+  // نفلتر المباريات المخفية
+  const visibleUpcoming = upcoming.filter(
+    (m) => !hiddenMatches.includes(m.id)
+  );
+
   return (
     <main className="min-h-screen">
       <NotificationsBanner />
@@ -312,18 +332,32 @@ export default function PredictPage() {
         {loading ? (
           <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
         ) : activeTab === "upcoming" ? (
-          upcoming.length === 0 ? (
+          visibleUpcoming.length === 0 ? (
             <div className="text-center py-20 text-slate-500">
               <div className="text-6xl mb-4">⚽</div>
-              <p>لا توجد مباريات متاحة حالياً</p>
-              <p className="text-sm mt-2">تابعنا على تلغرام لمعرفة المواعيد</p>
+              {upcoming.length > 0 && hiddenMatches.length > 0 ? (
+                <>
+                  <p className="text-green-400 font-bold text-lg mb-2">
+                    ✅ تم إرسال توقعاتك بنجاح
+                  </p>
+                  <p>شكراً لمشاركتك، تابعنا على تلغرام لمعرفة النتائج</p>
+                </>
+              ) : (
+                <>
+                  <p>لا توجد مباريات متاحة حالياً</p>
+                  <p className="text-sm mt-2">
+                    تابعنا على تلغرام لمعرفة المواعيد
+                  </p>
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-6">
-              {upcoming.map((match) => {
+              {visibleUpcoming.map((match) => {
                 const form = getFormState(match.id);
                 const submitted = getSubmittedPrediction(match.id);
                 const predictionsClosed = !match.predictions_open;
+                const imageSaved = imageSavedMessage === match.id;
 
                 return (
                   <div
@@ -526,7 +560,9 @@ export default function PredictPage() {
                             disabled={form.submitting}
                             className="w-full px-6 py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition shadow-lg shadow-sky-500/25"
                           >
-                            {form.submitting ? "جاري الإرسال..." : "تأكيد التوقع"}
+                            {form.submitting
+                              ? "جاري الإرسال..."
+                              : "تأكيد التوقع"}
                           </button>
 
                           <p className="text-xs text-slate-500 text-center">
@@ -537,56 +573,73 @@ export default function PredictPage() {
 
                       {submitted && (
                         <div className="mt-5 space-y-4">
-                          <div className="bg-yellow-500/10 border-2 border-yellow-500/40 rounded-xl p-5">
-                            <div className="text-yellow-400 font-bold text-base mb-3 text-center">
-                              ⚠️ مهم جداً — اقرأ بعناية
-                            </div>
-                            <div className="text-yellow-200/90 text-sm leading-relaxed text-center space-y-2">
-                              <p>
-                                يجب عليك{" "}
-                                <strong className="text-yellow-300">
-                                  حفظ صورة
-                                </strong>{" "}
-                                لهذي البطاقة (Screenshot) تحتوي على:
-                              </p>
-                              <div className="flex items-center justify-center gap-4 flex-wrap text-xs my-3">
-                                <span className="px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-300">
-                                  ✅ اسمك
-                                </span>
-                                <span className="px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-300">
-                                  ✅ معرّف تلغرام
-                                </span>
-                                <span className="px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-300">
-                                  ✅ توقعك
-                                </span>
+                          {imageSaved ? (
+                            <div className="bg-green-500/10 border-2 border-green-500/40 rounded-2xl p-6 text-center">
+                              <div className="text-5xl mb-3">✅</div>
+                              <div className="text-green-400 font-bold text-lg mb-2">
+                                تم حفظ صورة توقعك بنجاح!
                               </div>
-                              <p className="text-red-300 font-semibold">
-                                🔴 بدون صورة التوقع، لن يتم تسليم الجائزة
-                              </p>
+                              <div className="text-slate-300 text-sm mb-4">
+                                تأكد من وجود الصورة في جهازك
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                سيتم نقل هذه المباراة تلقائياً خلال 5 ثواني...
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <>
+                              <div className="bg-yellow-500/10 border-2 border-yellow-500/40 rounded-xl p-5">
+                                <div className="text-yellow-400 font-bold text-base mb-3 text-center">
+                                  ⚠️ مهم جداً — اقرأ بعناية
+                                </div>
+                                <div className="text-yellow-200/90 text-sm leading-relaxed text-center space-y-2">
+                                  <p>
+                                    يجب عليك{" "}
+                                    <strong className="text-yellow-300">
+                                      حفظ صورة
+                                    </strong>{" "}
+                                    لهذي البطاقة (Screenshot) تحتوي على:
+                                  </p>
+                                  <div className="flex items-center justify-center gap-4 flex-wrap text-xs my-3">
+                                    <span className="px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-300">
+                                      ✅ اسمك
+                                    </span>
+                                    <span className="px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-300">
+                                      ✅ معرّف تلغرام
+                                    </span>
+                                    <span className="px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-300">
+                                      ✅ توقعك
+                                    </span>
+                                  </div>
+                                  <p className="text-red-300 font-semibold">
+                                    🔴 بدون صورة التوقع، لن يتم تسليم الجائزة
+                                  </p>
+                                </div>
+                              </div>
 
-                          <button
-                            onClick={() => handleSaveImage(match.id)}
-                            disabled={savingImage === match.id}
-                            className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 disabled:opacity-50 text-white font-bold transition shadow-lg shadow-green-500/25 flex items-center justify-center gap-2"
-                          >
-                            {savingImage === match.id ? (
-                              <>
-                                <span>⏳</span>
-                                <span>جاري حفظ الصورة...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>📸</span>
-                                <span>احفظ صورة التوقع</span>
-                              </>
-                            )}
-                          </button>
+                              <button
+                                onClick={() => handleSaveImage(match.id)}
+                                disabled={savingImage === match.id}
+                                className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 disabled:opacity-50 text-white font-bold transition shadow-lg shadow-green-500/25 flex items-center justify-center gap-2"
+                              >
+                                {savingImage === match.id ? (
+                                  <>
+                                    <span>⏳</span>
+                                    <span>جاري حفظ الصورة...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>📸</span>
+                                    <span>احفظ صورة التوقع</span>
+                                  </>
+                                )}
+                              </button>
 
-                          <p className="text-xs text-slate-500 text-center">
-                            💡 احتفظ بالصورة حتى إعلان النتائج
-                          </p>
+                              <p className="text-xs text-slate-500 text-center">
+                                💡 احتفظ بالصورة حتى إعلان النتائج
+                              </p>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
