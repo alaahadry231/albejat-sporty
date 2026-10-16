@@ -46,11 +46,14 @@ export default function PredictPage() {
   const [finished, setFinished] = useState<FinishedMatch[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // حالة الصفحة (مفعلة / موقفة)
+  const [predictEnabled, setPredictEnabled] = useState<boolean | null>(null);
+  const [loadingStatus, setLoadingStatus] = useState(true);
+
   const [submittedPredictions, setSubmittedPredictions] = useState<
     SubmittedPrediction[]
   >([]);
 
-  // المباريات اللي انحفظت صورها (تختفي بعد 5 ثواني)
   const [hiddenMatches, setHiddenMatches] = useState<number[]>([]);
 
   const [formData, setFormData] = useState<
@@ -84,6 +87,23 @@ export default function PredictPage() {
   const [imageSavedMessage, setImageSavedMessage] = useState<number | null>(
     null
   );
+
+  // جلب حالة التوقعات
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch("/api/predict/status");
+        const data = await res.json();
+        setPredictEnabled(data.enabled ?? true);
+      } catch {
+        setPredictEnabled(true);
+      } finally {
+        setLoadingStatus(false);
+      }
+    };
+
+    fetchStatus();
+  }, []);
 
   useEffect(() => {
     trackView("/predict");
@@ -223,7 +243,6 @@ export default function PredictPage() {
       link.href = dataUrl;
       link.click();
 
-      // نعرض رسالة النجاح + نخفي المباراة بعد 5 ثواني
       setImageSavedMessage(matchId);
 
       setTimeout(() => {
@@ -287,11 +306,73 @@ export default function PredictPage() {
     }
   };
 
-  // نفلتر المباريات المخفية
   const visibleUpcoming = upcoming.filter(
     (m) => !hiddenMatches.includes(m.id)
   );
 
+  // شاشة التحميل
+  if (loadingStatus) {
+    return (
+      <main className="min-h-screen">
+        <NotificationsBanner />
+        <div className="flex items-center justify-center py-20">
+          <div className="text-slate-500">جاري التحميل...</div>
+        </div>
+      </main>
+    );
+  }
+
+  // شاشة "قريباً" إذا التوقعات موقفة
+  if (!predictEnabled) {
+    return (
+      <main className="min-h-screen">
+        <NotificationsBanner />
+        <section className="max-w-2xl mx-auto px-4 py-16 text-center">
+          <div className="relative inline-block mb-8">
+            <div className="text-8xl animate-bounce">🎯</div>
+            <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-sky-500 animate-ping"></div>
+            <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-sky-500"></div>
+          </div>
+
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
+            قريباً
+          </h2>
+
+          <p className="text-slate-400 text-lg mb-2">Soon</p>
+
+          <p className="text-slate-300 text-base max-w-md mx-auto mt-6 leading-relaxed">
+            صفحة توقع واربح قادمة قريباً! ترقّبوا الإعلان عن موعد الانطلاق عبر
+            قناتنا على تلغرام.
+          </p>
+
+          <div className="mt-8">
+            <a
+              href="https://t.me/ichancy_bets1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 text-white font-bold transition shadow-lg shadow-sky-500/25"
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+              </svg>
+              <span>تابع قناتنا على تلغرام</span>
+            </a>
+          </div>
+
+          <div className="mt-12">
+            <a
+              href="/"
+              className="text-slate-500 hover:text-sky-400 text-sm transition"
+            >
+              ← العودة للرئيسية
+            </a>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  // الصفحة العادية
   return (
     <main className="min-h-screen">
       <NotificationsBanner />
@@ -330,7 +411,9 @@ export default function PredictPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+          <div className="text-center py-20 text-slate-500">
+            جاري التحميل...
+          </div>
         ) : activeTab === "upcoming" ? (
           visibleUpcoming.length === 0 ? (
             <div className="text-center py-20 text-slate-500">
@@ -477,7 +560,9 @@ export default function PredictPage() {
                                 type="text"
                                 value={form.name}
                                 onChange={(e) =>
-                                  updateForm(match.id, { name: e.target.value })
+                                  updateForm(match.id, {
+                                    name: e.target.value,
+                                  })
                                 }
                                 placeholder="اكتب اسمك"
                                 maxLength={50}

@@ -146,6 +146,10 @@ export default function DashboardPage() {
   const [wheelEnabled, setWheelEnabled] = useState<boolean | null>(null);
   const [togglingWheel, setTogglingWheel] = useState(false);
 
+  // Predict status
+  const [predictEnabled, setPredictEnabled] = useState<boolean | null>(null);
+  const [togglingPredict, setTogglingPredict] = useState(false);
+
   const [matches, setMatches] = useState<Match[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [showMatchModal, setShowMatchModal] = useState(false);
@@ -170,7 +174,6 @@ export default function DashboardPage() {
   const [finishingMatch, setFinishingMatch] = useState(false);
   const [finishError, setFinishError] = useState("");
 
-  // Notifications
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
@@ -521,6 +524,54 @@ export default function DashboardPage() {
     }
   };
 
+  // Predict status
+  const fetchPredictStatus = async () => {
+    try {
+      const res = await fetch("/api/admin/predict-status");
+      if (res.status === 401) {
+        router.push("/admin");
+        return;
+      }
+      const json = await res.json();
+      setPredictEnabled(json.enabled ?? true);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const togglePredict = async () => {
+    if (togglingPredict || predictEnabled === null) return;
+
+    const newState = !predictEnabled;
+
+    const confirmMessage = newState
+      ? "هل أنت متأكد من تشغيل صفحة توقع واربح؟ سيراها الزوار ويمكنهم التوقع."
+      : "هل أنت متأكد من إيقاف صفحة توقع واربح؟ سيراها الزوار كـ 'قريباً'.";
+
+    if (!confirm(confirmMessage)) return;
+
+    setTogglingPredict(true);
+
+    try {
+      const res = await fetch("/api/admin/predict-status", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: newState }),
+      });
+
+      if (!res.ok) {
+        alert("فشل التحديث");
+        return;
+      }
+
+      setPredictEnabled(newState);
+    } catch {
+      alert("تعذر الاتصال بالخادم");
+    } finally {
+      setTogglingPredict(false);
+    }
+  };
+
   const fetchMatches = async () => {
     try {
       const res = await fetch("/api/admin/matches");
@@ -740,7 +791,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Notifications
   const fetchNotifications = async () => {
     try {
       const res = await fetch("/api/admin/notifications");
@@ -855,6 +905,7 @@ export default function DashboardPage() {
     fetchMessages();
     fetchSpinCodes();
     fetchWheelStatus();
+    fetchPredictStatus();
     fetchMatches();
     fetchNotifications();
   }, []);
@@ -956,57 +1007,113 @@ export default function DashboardPage() {
       </header>
 
       <section className="max-w-6xl mx-auto px-4 py-8">
-        {/* Wheel Control Card */}
-        <div
-          className={`mb-6 rounded-2xl border-2 p-5 flex items-center justify-between flex-wrap gap-4 transition ${
-            wheelEnabled
-              ? "bg-green-500/5 border-green-500/30"
-              : "bg-red-500/5 border-red-500/30"
-          }`}
-        >
-          <div className="flex items-center gap-4">
-            <div
-              className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl ${
-                wheelEnabled
-                  ? "bg-green-500/20 border border-green-500/40"
-                  : "bg-red-500/20 border border-red-500/40"
-              }`}
-            >
-              {wheelEnabled ? "🎡" : "⏸️"}
-            </div>
-            <div>
-              <div className="text-sm text-slate-400 mb-1">
-                حالة عجلة الفرص
-              </div>
+        {/* Status Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* Wheel Control Card */}
+          <div
+            className={`rounded-2xl border-2 p-5 flex items-center justify-between flex-wrap gap-4 transition ${
+              wheelEnabled
+                ? "bg-green-500/5 border-green-500/30"
+                : "bg-red-500/5 border-red-500/30"
+            }`}
+          >
+            <div className="flex items-center gap-4">
               <div
-                className={`text-lg font-bold ${
-                  wheelEnabled ? "text-green-400" : "text-red-400"
+                className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl ${
+                  wheelEnabled
+                    ? "bg-green-500/20 border border-green-500/40"
+                    : "bg-red-500/20 border border-red-500/40"
                 }`}
               >
-                {wheelEnabled === null
-                  ? "جاري التحميل..."
-                  : wheelEnabled
-                  ? "✅ مفعّلة — الزوار يمكنهم اللعب"
-                  : "⏸️ موقفة — الزوار يرون (قريباً)"}
+                {wheelEnabled ? "🎡" : "⏸️"}
+              </div>
+              <div>
+                <div className="text-sm text-slate-400 mb-1">
+                  حالة عجلة الفرص
+                </div>
+                <div
+                  className={`text-base font-bold ${
+                    wheelEnabled ? "text-green-400" : "text-red-400"
+                  }`}
+                >
+                  {wheelEnabled === null
+                    ? "جاري التحميل..."
+                    : wheelEnabled
+                    ? "✅ مفعّلة"
+                    : "⏸️ موقفة (قريباً)"}
+                </div>
               </div>
             </div>
+
+            <button
+              onClick={toggleWheel}
+              disabled={togglingWheel || wheelEnabled === null}
+              className={`px-5 py-2.5 rounded-xl font-bold text-white transition whitespace-nowrap text-sm ${
+                wheelEnabled
+                  ? "bg-red-500 hover:bg-red-400"
+                  : "bg-green-500 hover:bg-green-400"
+              } disabled:opacity-50`}
+            >
+              {togglingWheel
+                ? "..."
+                : wheelEnabled
+                ? "⏸️ إيقاف"
+                : "▶️ تشغيل"}
+            </button>
           </div>
 
-          <button
-            onClick={toggleWheel}
-            disabled={togglingWheel || wheelEnabled === null}
-            className={`px-6 py-3 rounded-xl font-bold text-white transition whitespace-nowrap ${
-              wheelEnabled
-                ? "bg-red-500 hover:bg-red-400"
-                : "bg-green-500 hover:bg-green-400"
-            } disabled:opacity-50`}
+          {/* Predict Control Card */}
+          <div
+            className={`rounded-2xl border-2 p-5 flex items-center justify-between flex-wrap gap-4 transition ${
+              predictEnabled
+                ? "bg-green-500/5 border-green-500/30"
+                : "bg-red-500/5 border-red-500/30"
+            }`}
           >
-            {togglingWheel
-              ? "جاري التحديث..."
-              : wheelEnabled
-              ? "⏸️ إيقاف العجلة"
-              : "▶️ تشغيل العجلة"}
-          </button>
+            <div className="flex items-center gap-4">
+              <div
+                className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl ${
+                  predictEnabled
+                    ? "bg-green-500/20 border border-green-500/40"
+                    : "bg-red-500/20 border border-red-500/40"
+                }`}
+              >
+                {predictEnabled ? "🎯" : "⏸️"}
+              </div>
+              <div>
+                <div className="text-sm text-slate-400 mb-1">
+                  حالة توقع واربح
+                </div>
+                <div
+                  className={`text-base font-bold ${
+                    predictEnabled ? "text-green-400" : "text-red-400"
+                  }`}
+                >
+                  {predictEnabled === null
+                    ? "جاري التحميل..."
+                    : predictEnabled
+                    ? "✅ مفعّلة"
+                    : "⏸️ موقفة (قريباً)"}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={togglePredict}
+              disabled={togglingPredict || predictEnabled === null}
+              className={`px-5 py-2.5 rounded-xl font-bold text-white transition whitespace-nowrap text-sm ${
+                predictEnabled
+                  ? "bg-red-500 hover:bg-red-400"
+                  : "bg-green-500 hover:bg-green-400"
+              } disabled:opacity-50`}
+            >
+              {togglingPredict
+                ? "..."
+                : predictEnabled
+                ? "⏸️ إيقاف"
+                : "▶️ تشغيل"}
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-2 mb-6 bg-slate-900 p-1 rounded-xl border border-slate-800 w-fit flex-wrap">
@@ -1116,7 +1223,6 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Notifications Tab */}
         {activeTab === "notifications" && (
           <>
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
