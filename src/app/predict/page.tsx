@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { trackView } from "@/lib/tracking";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import NotificationsBanner from "@/components/NotificationsBanner";
 
 type UpcomingMatch = {
@@ -205,15 +205,15 @@ export default function PredictPage() {
     setSavingImage(matchId);
 
     try {
-      const canvas = await html2canvas(card, {
+      const dataUrl = await toPng(card, {
         backgroundColor: "#0f172a",
-        scale: 2,
-        logging: false,
+        pixelRatio: 2,
+        cacheBust: true,
       });
 
       const link = document.createElement("a");
       link.download = `prediction-${matchId}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.href = dataUrl;
       link.click();
     } catch (err) {
       console.error("Screenshot error:", err);
@@ -286,7 +286,6 @@ export default function PredictPage() {
           </p>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-8 bg-slate-900 p-1 rounded-xl border border-slate-800 w-fit mx-auto">
           <button
             onClick={() => setActiveTab("upcoming")}
@@ -310,7 +309,6 @@ export default function PredictPage() {
           </button>
         </div>
 
-        {/* Content */}
         {loading ? (
           <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
         ) : activeTab === "upcoming" ? (
@@ -358,7 +356,6 @@ export default function PredictPage() {
                         </div>
                       </div>
 
-                      {/* Submitted - Show Screenshot Card */}
                       {submitted ? (
                         <div
                           id={`prediction-card-${match.id}`}
