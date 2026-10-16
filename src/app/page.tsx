@@ -1,6 +1,10 @@
+import NotificationsBanner from "@/components/NotificationsBanner";
+
 export default function Home() {
   return (
     <main className="min-h-screen">
+      <NotificationsBanner />
+
       {/* Hero with Background Image */}
       <section className="relative overflow-hidden min-h-[600px] md:min-h-[700px] flex items-center">
         <div

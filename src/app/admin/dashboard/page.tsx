@@ -66,6 +66,15 @@ type Prediction = {
   created_at: string;
 };
 
+type Notification = {
+  id: number;
+  title: string;
+  message: string;
+  type: string;
+  is_active: boolean;
+  created_at: string;
+};
+
 const emptyPageForm = {
   name: "",
   description: "",
@@ -87,13 +96,22 @@ const emptyBotForm = {
 const emptyMatchForm = {
   team1: "",
   team2: "",
-  match_date: "",
+  match_date_date: "",
+  match_date_time: "",
+};
+
+const emptyNotificationForm = {
+  title: "",
+  message: "",
+  type: "info",
 };
 
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"pages" | "bots" | "messages" | "spin-codes" | "matches">("pages");
+  const [activeTab, setActiveTab] = useState<
+    "pages" | "bots" | "messages" | "spin-codes" | "matches" | "notifications"
+  >("pages");
 
   const [pages, setPages] = useState<SportsPage[]>([]);
   const [loadingPages, setLoadingPages] = useState(true);
@@ -121,13 +139,13 @@ export default function DashboardPage() {
   const [generateCount, setGenerateCount] = useState("1");
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState("");
-  const [filterUsed, setFilterUsed] = useState<"all" | "used" | "unused">("all");
+  const [filterUsed, setFilterUsed] = useState<"all" | "used" | "unused">(
+    "all"
+  );
 
-  // حالة العجلة
   const [wheelEnabled, setWheelEnabled] = useState<boolean | null>(null);
   const [togglingWheel, setTogglingWheel] = useState(false);
 
-  // Matches
   const [matches, setMatches] = useState<Match[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [showMatchModal, setShowMatchModal] = useState(false);
@@ -135,7 +153,6 @@ export default function DashboardPage() {
   const [savingMatch, setSavingMatch] = useState(false);
   const [matchError, setMatchError] = useState("");
 
-  // View predictions
   const [viewingPredictions, setViewingPredictions] = useState<{
     match: Match | null;
     predictions: Prediction[];
@@ -146,13 +163,20 @@ export default function DashboardPage() {
     loading: false,
   });
 
-  // Finish match modal
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [finishMatch, setFinishMatch] = useState<Match | null>(null);
   const [finishScore1, setFinishScore1] = useState("0");
   const [finishScore2, setFinishScore2] = useState("0");
   const [finishingMatch, setFinishingMatch] = useState(false);
   const [finishError, setFinishError] = useState("");
+
+  // Notifications
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notificationForm, setNotificationForm] = useState(emptyNotificationForm);
+  const [savingNotification, setSavingNotification] = useState(false);
+  const [notificationError, setNotificationError] = useState("");
 
   const fetchPages = async () => {
     try {
@@ -361,7 +385,9 @@ export default function DashboardPage() {
   const handleDeleteMessage = async (id: number) => {
     if (!confirm("هل أنت متأكد من حذف الرسالة؟")) return;
     try {
-      const res = await fetch(`/api/admin/messages/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/messages/${id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) {
         alert("فشل الحذف");
         return;
@@ -430,7 +456,9 @@ export default function DashboardPage() {
   const handleDeleteSpinCode = async (id: number, code: string) => {
     if (!confirm(`هل أنت متأكد من حذف الكود "${code}"؟`)) return;
     try {
-      const res = await fetch(`/api/admin/spin-codes/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/spin-codes/${id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) {
         alert("فشل الحذف");
         return;
@@ -493,7 +521,6 @@ export default function DashboardPage() {
     }
   };
 
-  // ============ Matches ============
   const fetchMatches = async () => {
     try {
       const res = await fetch("/api/admin/matches");
@@ -511,7 +538,18 @@ export default function DashboardPage() {
   };
 
   const openAddMatch = () => {
-    setMatchForm(emptyMatchForm);
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const timeStr = `${hours}:${minutes}`;
+
+    setMatchForm({
+      team1: "",
+      team2: "",
+      match_date_date: dateStr,
+      match_date_time: timeStr,
+    });
     setMatchError("");
     setShowMatchModal(true);
   };
@@ -521,17 +559,29 @@ export default function DashboardPage() {
     setSavingMatch(true);
     setMatchError("");
 
-    if (!matchForm.team1 || !matchForm.team2 || !matchForm.match_date) {
-      setMatchError("جميع الحقول مطلوبة");
+    if (!matchForm.team1 || !matchForm.team2) {
+      setMatchError("أسماء الفريقين مطلوبة");
       setSavingMatch(false);
       return;
     }
+
+    if (!matchForm.match_date_date || !matchForm.match_date_time) {
+      setMatchError("التاريخ والوقت مطلوبين");
+      setSavingMatch(false);
+      return;
+    }
+
+    const matchDate = `${matchForm.match_date_date}T${matchForm.match_date_time}:00`;
 
     try {
       const res = await fetch("/api/admin/matches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(matchForm),
+        body: JSON.stringify({
+          team1: matchForm.team1,
+          team2: matchForm.team2,
+          match_date: matchDate,
+        }),
       });
 
       const data = await res.json();
@@ -554,7 +604,12 @@ export default function DashboardPage() {
 
   const handleTogglePredictions = async (match: Match) => {
     const action = match.predictions_open ? "إيقاف" : "فتح";
-    if (!confirm(`هل أنت متأكد من ${action} التوقعات على "${match.team1} × ${match.team2}"؟`)) return;
+    if (
+      !confirm(
+        `هل أنت متأكد من ${action} التوقعات على "${match.team1} × ${match.team2}"؟`
+      )
+    )
+      return;
 
     try {
       const res = await fetch(`/api/admin/matches/${match.id}`, {
@@ -575,10 +630,17 @@ export default function DashboardPage() {
   };
 
   const handleDeleteMatch = async (match: Match) => {
-    if (!confirm(`هل أنت متأكد من حذف "${match.team1} × ${match.team2}"؟ سيتم حذف جميع التوقعات المرتبطة.`)) return;
+    if (
+      !confirm(
+        `هل أنت متأكد من حذف "${match.team1} × ${match.team2}"؟ سيتم حذف جميع التوقعات المرتبطة.`
+      )
+    )
+      return;
 
     try {
-      const res = await fetch(`/api/admin/matches/${match.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/matches/${match.id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) {
         alert("فشل الحذف");
         return;
@@ -678,6 +740,100 @@ export default function DashboardPage() {
     }
   };
 
+  // Notifications
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch("/api/admin/notifications");
+      if (res.status === 401) {
+        router.push("/admin");
+        return;
+      }
+      const json = await res.json();
+      setNotifications(json.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  const openAddNotification = () => {
+    setNotificationForm(emptyNotificationForm);
+    setNotificationError("");
+    setShowNotificationModal(true);
+  };
+
+  const handleSaveNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingNotification(true);
+    setNotificationError("");
+
+    if (!notificationForm.title || !notificationForm.message) {
+      setNotificationError("العنوان والرسالة مطلوبين");
+      setSavingNotification(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/admin/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(notificationForm),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setNotificationError(data.error || "حدث خطأ");
+        setSavingNotification(false);
+        return;
+      }
+
+      setShowNotificationModal(false);
+      setNotificationForm(emptyNotificationForm);
+      await fetchNotifications();
+    } catch {
+      setNotificationError("تعذر الاتصال بالخادم");
+    } finally {
+      setSavingNotification(false);
+    }
+  };
+
+  const handleToggleNotification = async (id: number) => {
+    try {
+      const res = await fetch(`/api/admin/notifications/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "toggle" }),
+      });
+
+      if (!res.ok) {
+        alert("فشل التحديث");
+        return;
+      }
+
+      await fetchNotifications();
+    } catch {
+      alert("تعذر الاتصال بالخادم");
+    }
+  };
+
+  const handleDeleteNotification = async (id: number) => {
+    if (!confirm("هل أنت متأكد من حذف الإشعار؟")) return;
+    try {
+      const res = await fetch(`/api/admin/notifications/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        alert("فشل الحذف");
+        return;
+      }
+      await fetchNotifications();
+    } catch {
+      alert("تعذر الاتصال بالخادم");
+    }
+  };
+
   const filteredSpinCodes = spinCodes.filter((c) => {
     if (filterUsed === "used") return c.is_used;
     if (filterUsed === "unused") return !c.is_used;
@@ -686,7 +842,12 @@ export default function DashboardPage() {
 
   const unreadCount = messages.filter((m) => !m.is_read).length;
   const unusedCodesCount = spinCodes.filter((c) => !c.is_used).length;
-  const upcomingMatchesCount = matches.filter((m) => m.status === "upcoming").length;
+  const upcomingMatchesCount = matches.filter(
+    (m) => m.status === "upcoming"
+  ).length;
+  const activeNotificationsCount = notifications.filter(
+    (n) => n.is_active
+  ).length;
 
   useEffect(() => {
     fetchPages();
@@ -695,6 +856,7 @@ export default function DashboardPage() {
     fetchSpinCodes();
     fetchWheelStatus();
     fetchMatches();
+    fetchNotifications();
   }, []);
 
   const handleLogout = async () => {
@@ -714,6 +876,32 @@ export default function DashboardPage() {
       });
     } catch {
       return dateStr;
+    }
+  };
+
+  const getNotificationTypeStyle = (type: string) => {
+    switch (type) {
+      case "success":
+        return "bg-green-500/20 text-green-400 border-green-500/30";
+      case "warning":
+        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+      case "error":
+        return "bg-red-500/20 text-red-400 border-red-500/30";
+      default:
+        return "bg-sky-500/20 text-sky-400 border-sky-500/30";
+    }
+  };
+
+  const getNotificationTypeLabel = (type: string) => {
+    switch (type) {
+      case "success":
+        return "🎉 نجاح";
+      case "warning":
+        return "⚠️ تحذير";
+      case "error":
+        return "🚨 خطأ";
+      default:
+        return "📢 معلومة";
     }
   };
 
@@ -787,7 +975,9 @@ export default function DashboardPage() {
               {wheelEnabled ? "🎡" : "⏸️"}
             </div>
             <div>
-              <div className="text-sm text-slate-400 mb-1">حالة عجلة الفرص</div>
+              <div className="text-sm text-slate-400 mb-1">
+                حالة عجلة الفرص
+              </div>
               <div
                 className={`text-lg font-bold ${
                   wheelEnabled ? "text-green-400" : "text-red-400"
@@ -862,6 +1052,27 @@ export default function DashboardPage() {
             )}
           </button>
           <button
+            onClick={() => setActiveTab("notifications")}
+            className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${
+              activeTab === "notifications"
+                ? "bg-sky-500 text-slate-900"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            📢 الإشعارات
+            {activeNotificationsCount > 0 && (
+              <span
+                className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs flex items-center justify-center font-bold ${
+                  activeTab === "notifications"
+                    ? "bg-slate-900 text-sky-400"
+                    : "bg-green-500 text-white"
+                }`}
+              >
+                {activeNotificationsCount}
+              </span>
+            )}
+          </button>
+          <button
             onClick={() => setActiveTab("messages")}
             className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${
               activeTab === "messages"
@@ -905,6 +1116,106 @@ export default function DashboardPage() {
           </button>
         </div>
 
+        {/* Notifications Tab */}
+        {activeTab === "notifications" && (
+          <>
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+              <div>
+                <h2 className="text-2xl font-bold">الإشعارات</h2>
+                <p className="text-slate-400 text-sm mt-1">
+                  إجمالي: {notifications.length} | مفعّلة: {activeNotificationsCount}
+                </p>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={fetchNotifications}
+                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-sm transition"
+                >
+                  🔄 تحديث
+                </button>
+                <button
+                  onClick={openAddNotification}
+                  className="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold transition"
+                >
+                  + إضافة إشعار
+                </button>
+              </div>
+            </div>
+
+            {loadingNotifications ? (
+              <div className="text-center py-20 text-slate-500">
+                جاري التحميل...
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="text-center py-20 text-slate-500">
+                لا توجد إشعارات بعد — اضغط &quot;إضافة إشعار&quot;
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {notifications.map((n) => (
+                  <div
+                    key={n.id}
+                    className={`bg-slate-900 rounded-2xl border p-5 ${
+                      n.is_active
+                        ? "border-sky-500/30"
+                        : "border-slate-800 opacity-60"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <h3 className="font-bold text-lg">{n.title}</h3>
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold border ${getNotificationTypeStyle(
+                              n.type
+                            )}`}
+                          >
+                            {getNotificationTypeLabel(n.type)}
+                          </span>
+                          {n.is_active ? (
+                            <span className="inline-block px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold border border-green-500/30">
+                              ✅ مفعّل
+                            </span>
+                          ) : (
+                            <span className="inline-block px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 text-xs font-semibold">
+                              ⏸️ مخفي
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-slate-300 text-sm whitespace-pre-wrap">
+                          {n.message}
+                        </p>
+                        <div className="text-xs text-slate-500 mt-2">
+                          {formatDate(n.created_at)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        onClick={() => handleToggleNotification(n.id)}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition border ${
+                          n.is_active
+                            ? "bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                            : "bg-green-500/10 hover:bg-green-500/20 text-green-400 border-green-500/30"
+                        }`}
+                      >
+                        {n.is_active ? "⏸️ إخفاء" : "▶️ تفعيل"}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteNotification(n.id)}
+                        className="px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold border border-red-500/30 transition"
+                      >
+                        🗑️ حذف
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
         {activeTab === "pages" && (
           <>
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -918,32 +1229,53 @@ export default function DashboardPage() {
             </div>
 
             {loadingPages ? (
-              <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+              <div className="text-center py-20 text-slate-500">
+                جاري التحميل...
+              </div>
             ) : pages.length === 0 ? (
-              <div className="text-center py-20 text-slate-500">لا توجد بكجات بعد</div>
+              <div className="text-center py-20 text-slate-500">
+                لا توجد بكجات بعد
+              </div>
             ) : (
               <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-slate-950 border-b border-slate-800">
                     <tr>
-                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">الاسم</th>
-                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">الكود</th>
-                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">الريت</th>
-                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">الإجراءات</th>
+                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">
+                        الاسم
+                      </th>
+                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">
+                        الكود
+                      </th>
+                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">
+                        الريت
+                      </th>
+                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">
+                        الإجراءات
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {pages.map((p) => (
-                      <tr key={p.id} className="border-b border-slate-800 last:border-0">
+                      <tr
+                        key={p.id}
+                        className="border-b border-slate-800 last:border-0"
+                      >
                         <td className="px-4 py-3">
                           <div className="font-semibold">{p.name}</div>
-                          <div className="text-xs text-slate-500 md:hidden">{p.code}</div>
+                          <div className="text-xs text-slate-500 md:hidden">
+                            {p.code}
+                          </div>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
-                          <span className="font-mono text-sky-400 text-sm">{p.code}</span>
+                          <span className="font-mono text-sky-400 text-sm">
+                            {p.code}
+                          </span>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
-                          <span className="text-sky-400 font-semibold">{p.rate}</span>
+                          <span className="text-sky-400 font-semibold">
+                            {p.rate}
+                          </span>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
@@ -983,28 +1315,45 @@ export default function DashboardPage() {
             </div>
 
             {loadingBots ? (
-              <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+              <div className="text-center py-20 text-slate-500">
+                جاري التحميل...
+              </div>
             ) : bots.length === 0 ? (
-              <div className="text-center py-20 text-slate-500">لا توجد بوتات بعد</div>
+              <div className="text-center py-20 text-slate-500">
+                لا توجد بوتات بعد
+              </div>
             ) : (
               <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-slate-950 border-b border-slate-800">
                     <tr>
-                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">الاسم</th>
-                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">التصنيف</th>
-                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">الإجراءات</th>
+                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">
+                        الاسم
+                      </th>
+                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">
+                        التصنيف
+                      </th>
+                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">
+                        الإجراءات
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {bots.map((b) => (
-                      <tr key={b.id} className="border-b border-slate-800 last:border-0">
+                      <tr
+                        key={b.id}
+                        className="border-b border-slate-800 last:border-0"
+                      >
                         <td className="px-4 py-3">
                           <div className="font-semibold">{b.name}</div>
-                          <div className="text-xs text-slate-500 md:hidden">{b.category}</div>
+                          <div className="text-xs text-slate-500 md:hidden">
+                            {b.category}
+                          </div>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
-                          <span className="text-sky-400 text-sm">{b.category}</span>
+                          <span className="text-sky-400 text-sm">
+                            {b.category}
+                          </span>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
@@ -1057,7 +1406,9 @@ export default function DashboardPage() {
             </div>
 
             {loadingMatches ? (
-              <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+              <div className="text-center py-20 text-slate-500">
+                جاري التحميل...
+              </div>
             ) : matches.length === 0 ? (
               <div className="text-center py-20 text-slate-500">
                 لا توجد مباريات بعد — اضغط &quot;إضافة مباراة&quot;
@@ -1078,7 +1429,8 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
                       <div className="flex-1 min-w-0">
                         <div className="text-lg font-bold mb-1">
-                          {m.team1} <span className="text-slate-500">×</span> {m.team2}
+                          {m.team1} <span className="text-slate-500">×</span>{" "}
+                          {m.team2}
                         </div>
                         <div className="text-xs text-slate-400">
                           📅 {formatDate(m.match_date)}
@@ -1126,7 +1478,9 @@ export default function DashboardPage() {
                                 : "bg-green-500/10 hover:bg-green-500/20 text-green-400 border-green-500/30"
                             }`}
                           >
-                            {m.predictions_open ? "⏸️ إيقاف التوقعات" : "▶️ فتح التوقعات"}
+                            {m.predictions_open
+                              ? "⏸️ إيقاف التوقعات"
+                              : "▶️ فتح التوقعات"}
                           </button>
 
                           <button
@@ -1165,9 +1519,13 @@ export default function DashboardPage() {
             </div>
 
             {loadingMessages ? (
-              <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+              <div className="text-center py-20 text-slate-500">
+                جاري التحميل...
+              </div>
             ) : messages.length === 0 ? (
-              <div className="text-center py-20 text-slate-500">لا توجد رسائل بعد</div>
+              <div className="text-center py-20 text-slate-500">
+                لا توجد رسائل بعد
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {messages.map((msg) => (
@@ -1187,7 +1545,10 @@ export default function DashboardPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-bold truncate">{msg.name}</div>
-                          <div className="text-xs text-slate-500 truncate" dir="ltr">
+                          <div
+                            className="text-xs text-slate-500 truncate"
+                            dir="ltr"
+                          >
                             {msg.email}
                           </div>
                         </div>
@@ -1215,7 +1576,8 @@ export default function DashboardPage() {
               <div>
                 <h2 className="text-2xl font-bold">أكواد العجلة</h2>
                 <p className="text-slate-400 text-sm mt-1">
-                  إجمالي: {spinCodes.length} | مستخدمة: {spinCodes.length - unusedCodesCount} | متاحة: {unusedCodesCount}
+                  إجمالي: {spinCodes.length} | مستخدمة:{" "}
+                  {spinCodes.length - unusedCodesCount} | متاحة: {unusedCodesCount}
                 </p>
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -1272,7 +1634,9 @@ export default function DashboardPage() {
             </div>
 
             {loadingSpinCodes ? (
-              <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+              <div className="text-center py-20 text-slate-500">
+                جاري التحميل...
+              </div>
             ) : filteredSpinCodes.length === 0 ? (
               <div className="text-center py-20 text-slate-500">
                 {spinCodes.length === 0
@@ -1285,16 +1649,29 @@ export default function DashboardPage() {
                   <table className="w-full">
                     <thead className="bg-slate-950 border-b border-slate-800">
                       <tr>
-                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">الكود</th>
-                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">الحالة</th>
-                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">الجائزة</th>
-                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">التاريخ</th>
-                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">إجراءات</th>
+                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">
+                          الكود
+                        </th>
+                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">
+                          الحالة
+                        </th>
+                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">
+                          الجائزة
+                        </th>
+                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">
+                          التاريخ
+                        </th>
+                        <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">
+                          إجراءات
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredSpinCodes.map((c) => (
-                        <tr key={c.id} className="border-b border-slate-800 last:border-0">
+                        <tr
+                          key={c.id}
+                          className="border-b border-slate-800 last:border-0"
+                        >
                           <td className="px-4 py-3">
                             <button
                               onClick={() => copyCode(c.code)}
@@ -1340,12 +1717,16 @@ export default function DashboardPage() {
                             <div className="text-xs text-slate-500">
                               {c.used_at ? (
                                 <>
-                                  <div className="text-slate-400">استُخدم:</div>
+                                  <div className="text-slate-400">
+                                    استُخدم:
+                                  </div>
                                   {formatDate(c.used_at)}
                                 </>
                               ) : (
                                 <>
-                                  <div className="text-slate-400">أُنشئ:</div>
+                                  <div className="text-slate-400">
+                                    أُنشئ:
+                                  </div>
                                   {formatDate(c.created_at)}
                                 </>
                               )}
@@ -1353,7 +1734,9 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-4 py-3">
                             <button
-                              onClick={() => handleDeleteSpinCode(c.id, c.code)}
+                              onClick={() =>
+                                handleDeleteSpinCode(c.id, c.code)
+                              }
                               className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs border border-red-500/30 transition"
                             >
                               حذف
@@ -1370,7 +1753,119 @@ export default function DashboardPage() {
         )}
       </section>
 
-      {/* Generate Codes Modal */}
+      {showNotificationModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-lg my-8">
+            <div className="flex items-center justify-between p-5 border-b border-slate-800">
+              <h3 className="text-xl font-bold">إضافة إشعار جديد</h3>
+              <button
+                onClick={() => setShowNotificationModal(false)}
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveNotification} className="p-5 space-y-4">
+              {notificationError && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                  {notificationError}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">
+                  نوع الإشعار
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: "info", label: "📢 معلومة" },
+                    { value: "success", label: "🎉 نجاح" },
+                    { value: "warning", label: "⚠️ تحذير" },
+                    { value: "error", label: "🚨 خطأ" },
+                  ].map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() =>
+                        setNotificationForm({
+                          ...notificationForm,
+                          type: t.value,
+                        })
+                      }
+                      className={`px-4 py-3 rounded-xl text-sm font-semibold transition border ${
+                        notificationForm.type === t.value
+                          ? "bg-sky-500 text-slate-900 border-sky-500"
+                          : "bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">
+                  العنوان *
+                </label>
+                <input
+                  type="text"
+                  value={notificationForm.title}
+                  onChange={(e) =>
+                    setNotificationForm({
+                      ...notificationForm,
+                      title: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+                  placeholder="مثال: تم اختيار الرابحين!"
+                  maxLength={100}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-2">
+                  الرسالة *
+                </label>
+                <textarea
+                  value={notificationForm.message}
+                  onChange={(e) =>
+                    setNotificationForm({
+                      ...notificationForm,
+                      message: e.target.value,
+                    })
+                  }
+                  rows={4}
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition resize-none"
+                  placeholder="اكتب نص الإشعار..."
+                  maxLength={500}
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={savingNotification}
+                  className="flex-1 px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition"
+                >
+                  {savingNotification ? "جاري الحفظ..." : "إضافة الإشعار"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNotificationModal(false)}
+                  className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {showGenerateModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-md">
@@ -1444,7 +1939,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Add Match Modal */}
       {showMatchModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-md my-8">
@@ -1466,11 +1960,15 @@ export default function DashboardPage() {
               )}
 
               <div>
-                <label className="block text-sm text-slate-400 mb-2">الفريق الأول *</label>
+                <label className="block text-sm text-slate-400 mb-2">
+                  الفريق الأول *
+                </label>
                 <input
                   type="text"
                   value={matchForm.team1}
-                  onChange={(e) => setMatchForm({ ...matchForm, team1: e.target.value })}
+                  onChange={(e) =>
+                    setMatchForm({ ...matchForm, team1: e.target.value })
+                  }
                   className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                   placeholder="مثال: ريال مدريد"
                   required
@@ -1478,27 +1976,59 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-2">الفريق الثاني *</label>
+                <label className="block text-sm text-slate-400 mb-2">
+                  الفريق الثاني *
+                </label>
                 <input
                   type="text"
                   value={matchForm.team2}
-                  onChange={(e) => setMatchForm({ ...matchForm, team2: e.target.value })}
+                  onChange={(e) =>
+                    setMatchForm({ ...matchForm, team2: e.target.value })
+                  }
                   className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                   placeholder="مثال: برشلونة"
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-sm text-slate-400 mb-2">موعد المباراة *</label>
-                <input
-                  type="datetime-local"
-                  value={matchForm.match_date}
-                  onChange={(e) => setMatchForm({ ...matchForm, match_date: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
-                  required
-                  dir="ltr"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    📅 التاريخ *
+                  </label>
+                  <input
+                    type="date"
+                    value={matchForm.match_date_date}
+                    onChange={(e) =>
+                      setMatchForm({
+                        ...matchForm,
+                        match_date_date: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+                    required
+                    dir="ltr"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    🕐 الوقت *
+                  </label>
+                  <input
+                    type="time"
+                    value={matchForm.match_date_time}
+                    onChange={(e) =>
+                      setMatchForm({
+                        ...matchForm,
+                        match_date_time: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+                    required
+                    dir="ltr"
+                  />
+                </div>
               </div>
 
               <div className="flex gap-3 pt-2">
@@ -1522,7 +2052,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Finish Match Modal */}
       {showFinishModal && finishMatch && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-md">
@@ -1549,7 +2078,8 @@ export default function DashboardPage() {
               )}
 
               <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-yellow-400 text-sm text-center">
-                ⚠️ بعد الإنهاء، ما رح يقدر الزوار يتوقعوا، ورح تظهر النتيجة في صفحة الزوار
+                ⚠️ بعد الإنهاء، ما رح يقدر الزوار يتوقعوا، ورح تظهر النتيجة في
+                صفحة الزوار
               </div>
 
               <div>
@@ -1608,7 +2138,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Predictions Modal */}
       {viewingPredictions.match !== null && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-3xl my-8 max-h-[85vh] flex flex-col">
@@ -1616,12 +2145,17 @@ export default function DashboardPage() {
               <div>
                 <h3 className="text-xl font-bold">👥 التوقعات</h3>
                 <p className="text-sm text-slate-400 mt-1">
-                  {viewingPredictions.match.team1} × {viewingPredictions.match.team2}
+                  {viewingPredictions.match.team1} ×{" "}
+                  {viewingPredictions.match.team2}
                 </p>
               </div>
               <button
                 onClick={() =>
-                  setViewingPredictions({ match: null, predictions: [], loading: false })
+                  setViewingPredictions({
+                    match: null,
+                    predictions: [],
+                    loading: false,
+                  })
                 }
                 className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition"
               >
@@ -1631,7 +2165,9 @@ export default function DashboardPage() {
 
             <div className="p-5 overflow-y-auto">
               {viewingPredictions.loading ? (
-                <div className="text-center py-10 text-slate-500">جاري التحميل...</div>
+                <div className="text-center py-10 text-slate-500">
+                  جاري التحميل...
+                </div>
               ) : viewingPredictions.predictions.length === 0 ? (
                 <div className="text-center py-10 text-slate-500">
                   <div className="text-5xl mb-3">📭</div>
@@ -1714,32 +2250,44 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-400 mb-2">اسم البكج *</label>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    اسم البكج *
+                  </label>
                   <input
                     type="text"
                     value={pageForm.name}
-                    onChange={(e) => setPageForm({ ...pageForm, name: e.target.value })}
+                    onChange={(e) =>
+                      setPageForm({ ...pageForm, name: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                     required
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-400 mb-2">الوصف</label>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    الوصف
+                  </label>
                   <input
                     type="text"
                     value={pageForm.description}
-                    onChange={(e) => setPageForm({ ...pageForm, description: e.target.value })}
+                    onChange={(e) =>
+                      setPageForm({ ...pageForm, description: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-400 mb-2">الكود *</label>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    الكود *
+                  </label>
                   <input
                     type="text"
                     value={pageForm.code}
-                    onChange={(e) => setPageForm({ ...pageForm, code: e.target.value })}
+                    onChange={(e) =>
+                      setPageForm({ ...pageForm, code: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white font-mono transition"
                     required
                     dir="ltr"
@@ -1747,21 +2295,29 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-slate-400 mb-2">التصنيف</label>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    التصنيف
+                  </label>
                   <input
                     type="text"
                     value={pageForm.category}
-                    onChange={(e) => setPageForm({ ...pageForm, category: e.target.value })}
+                    onChange={(e) =>
+                      setPageForm({ ...pageForm, category: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm text-slate-400 mb-2">الريت</label>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    الريت
+                  </label>
                   <input
                     type="text"
                     value={pageForm.rate}
-                    onChange={(e) => setPageForm({ ...pageForm, rate: e.target.value })}
+                    onChange={(e) =>
+                      setPageForm({ ...pageForm, rate: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                     placeholder="×1"
                   />
@@ -1772,10 +2328,18 @@ export default function DashboardPage() {
                     type="checkbox"
                     id="page_is_published"
                     checked={pageForm.is_published}
-                    onChange={(e) => setPageForm({ ...pageForm, is_published: e.target.checked })}
+                    onChange={(e) =>
+                      setPageForm({
+                        ...pageForm,
+                        is_published: e.target.checked,
+                      })
+                    }
                     className="w-5 h-5 rounded accent-sky-500"
                   />
-                  <label htmlFor="page_is_published" className="text-sm text-slate-300">
+                  <label
+                    htmlFor="page_is_published"
+                    className="text-sm text-slate-300"
+                  >
                     نشر البكج (يظهر للزوار)
                   </label>
                 </div>
@@ -1787,7 +2351,11 @@ export default function DashboardPage() {
                   disabled={savingPage}
                   className="flex-1 px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition"
                 >
-                  {savingPage ? "جاري الحفظ..." : editingPageId ? "حفظ التعديلات" : "إضافة البكج"}
+                  {savingPage
+                    ? "جاري الحفظ..."
+                    : editingPageId
+                    ? "حفظ التعديلات"
+                    : "إضافة البكج"}
                 </button>
                 <button
                   type="button"
@@ -1826,32 +2394,44 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-400 mb-2">اسم البوت *</label>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    اسم البوت *
+                  </label>
                   <input
                     type="text"
                     value={botForm.name}
-                    onChange={(e) => setBotForm({ ...botForm, name: e.target.value })}
+                    onChange={(e) =>
+                      setBotForm({ ...botForm, name: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                     required
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-400 mb-2">الوصف</label>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    الوصف
+                  </label>
                   <input
                     type="text"
                     value={botForm.description}
-                    onChange={(e) => setBotForm({ ...botForm, description: e.target.value })}
+                    onChange={(e) =>
+                      setBotForm({ ...botForm, description: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-400 mb-2">رابط البوت *</label>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    رابط البوت *
+                  </label>
                   <input
                     type="url"
                     value={botForm.bot_url}
-                    onChange={(e) => setBotForm({ ...botForm, bot_url: e.target.value })}
+                    onChange={(e) =>
+                      setBotForm({ ...botForm, bot_url: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                     required
                     dir="ltr"
@@ -1860,11 +2440,15 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-400 mb-2">رابط الصورة</label>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    رابط الصورة
+                  </label>
                   <input
                     type="url"
                     value={botForm.image_url}
-                    onChange={(e) => setBotForm({ ...botForm, image_url: e.target.value })}
+                    onChange={(e) =>
+                      setBotForm({ ...botForm, image_url: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                     dir="ltr"
                     placeholder="https://..."
@@ -1872,17 +2456,25 @@ export default function DashboardPage() {
                   {botForm.image_url && (
                     <div className="mt-3 rounded-xl overflow-hidden border border-slate-800">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={botForm.image_url} alt="معاينة" className="w-full h-40 object-cover" />
+                      <img
+                        src={botForm.image_url}
+                        alt="معاينة"
+                        className="w-full h-40 object-cover"
+                      />
                     </div>
                   )}
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-400 mb-2">التصنيف</label>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    التصنيف
+                  </label>
                   <input
                     type="text"
                     value={botForm.category}
-                    onChange={(e) => setBotForm({ ...botForm, category: e.target.value })}
+                    onChange={(e) =>
+                      setBotForm({ ...botForm, category: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
                   />
                 </div>
@@ -1892,10 +2484,18 @@ export default function DashboardPage() {
                     type="checkbox"
                     id="bot_is_published"
                     checked={botForm.is_published}
-                    onChange={(e) => setBotForm({ ...botForm, is_published: e.target.checked })}
+                    onChange={(e) =>
+                      setBotForm({
+                        ...botForm,
+                        is_published: e.target.checked,
+                      })
+                    }
                     className="w-5 h-5 rounded accent-sky-500"
                   />
-                  <label htmlFor="bot_is_published" className="text-sm text-slate-300">
+                  <label
+                    htmlFor="bot_is_published"
+                    className="text-sm text-slate-300"
+                  >
                     نشر البوت (يظهر للزوار)
                   </label>
                 </div>
@@ -1907,7 +2507,11 @@ export default function DashboardPage() {
                   disabled={savingBot}
                   className="flex-1 px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition"
                 >
-                  {savingBot ? "جاري الحفظ..." : editingBotId ? "حفظ التعديلات" : "إضافة البوت"}
+                  {savingBot
+                    ? "جاري الحفظ..."
+                    : editingBotId
+                    ? "حفظ التعديلات"
+                    : "إضافة البوت"}
                 </button>
                 <button
                   type="button"
