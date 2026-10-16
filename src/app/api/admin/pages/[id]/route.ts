@@ -12,7 +12,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
     const body = await req.json();
-    const { name, description, code, image_url, category, rate, is_published } = body;
+    const { name, description, code, category, rate, is_published } = body;
 
     if (!name || !code) {
       return NextResponse.json(
@@ -26,7 +26,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
       set name = ${name},
           description = ${description || ""},
           code = ${code},
-          image_url = ${image_url || ""},
           category = ${category || "عام"},
           rate = ${rate || "×1"},
           is_published = ${is_published ?? true}
@@ -48,9 +47,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
 
   try {
     const { id } = await params;
-
     await sql`delete from sports_pages where id = ${id}`;
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Delete error:", error);

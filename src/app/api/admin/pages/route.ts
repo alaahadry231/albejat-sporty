@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { name, description, code, image_url, category, rate } = body;
+    const { name, description, code, category, rate } = body;
 
     if (!name || !code) {
       return NextResponse.json(
@@ -36,14 +36,17 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await sql`
-      insert into sports_pages (name, description, code, image_url, category, rate)
-      values (${name}, ${description || ""}, ${code}, ${image_url || ""}, ${category || "عام"}, ${rate || "×1"})
+      insert into sports_pages (name, description, code, category, rate)
+      values (${name}, ${description || ""}, ${code}, ${category || "عام"}, ${rate || "×1"})
       returning *
     `;
 
     return NextResponse.json({ data: result[0] });
   } catch (error) {
     console.error("Insert error:", error);
-    return NextResponse.json({ error: "Insert failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Insert failed" },
+      { status: 500 }
+    );
   }
 }
