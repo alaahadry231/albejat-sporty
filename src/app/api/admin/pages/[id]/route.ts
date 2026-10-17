@@ -12,6 +12,19 @@ export async function PUT(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
     const body = await req.json();
+
+    // زر تبديل حالة "منتهي"
+    if (body.action === "toggle_finished") {
+      const result = await sql`
+        update sports_pages
+        set is_finished = not is_finished
+        where id = ${id}
+        returning *
+      `;
+      return NextResponse.json({ data: result[0] });
+    }
+
+    // تعديل عادي
     const { name, description, code, category, rate, is_published } = body;
 
     if (!name || !code) {

@@ -10,6 +10,7 @@ type SportsPage = {
   code: string;
   category: string;
   rate: string;
+  is_finished: boolean;
 };
 
 export default function PagesPage() {
@@ -69,7 +70,9 @@ export default function PagesPage() {
           <h2 className="text-3xl md:text-5xl font-bold mb-3">
             البكجات <span className="text-sky-400">الرياضية</span>
           </h2>
-          <p className="text-slate-200 text-lg">اختر البكج المناسب وانسخ الكود واستخدمه مباشرة</p>
+          <p className="text-slate-200 text-lg">
+            اختر البكج المناسب وانسخ الكود واستخدمه مباشرة
+          </p>
         </div>
       </section>
 
@@ -85,23 +88,40 @@ export default function PagesPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-20 text-slate-500">جاري التحميل...</div>
+          <div className="text-center py-20 text-slate-500">
+            جاري التحميل...
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20 text-slate-500">لا توجد نتائج مطابقة</div>
+          <div className="text-center py-20 text-slate-500">
+            لا توجد نتائج مطابقة
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((item) => (
               <div
                 key={item.id}
-                className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden hover:border-sky-500/50 transition p-5"
+                className={`bg-slate-900 rounded-2xl border overflow-hidden transition p-5 ${
+                  item.is_finished
+                    ? "border-red-500/30 opacity-70"
+                    : "border-slate-800 hover:border-sky-500/50"
+                }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-bold mb-1">{item.name}</h3>
-                    <p className="text-slate-400 text-sm">{item.description}</p>
+                    <p className="text-slate-400 text-sm">
+                      {item.description}
+                    </p>
                   </div>
-                  <div className="px-3 py-1 rounded-full bg-sky-500 text-slate-900 text-xs font-bold whitespace-nowrap shrink-0">
-                    ريت {item.rate}
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <div className="px-3 py-1 rounded-full bg-sky-500 text-slate-900 text-xs font-bold whitespace-nowrap">
+                      ريت {item.rate}
+                    </div>
+                    {item.is_finished && (
+                      <div className="px-3 py-1 rounded-full bg-red-500 text-white text-xs font-bold whitespace-nowrap">
+                        ⏹️ منتهي
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -113,23 +133,45 @@ export default function PagesPage() {
 
                 <div className="bg-slate-950 rounded-lg p-3 mb-4 border border-slate-800">
                   <div className="text-xs text-slate-500 mb-1">الكود:</div>
-                  <div className="font-mono text-sky-400 text-sm break-all">
+                  <div
+                    className={`font-mono text-sm break-all ${
+                      item.is_finished ? "text-slate-500 line-through" : "text-sky-400"
+                    }`}
+                  >
                     {item.code}
                   </div>
                 </div>
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleCopy(item.code, item.id, item.name)}
-                    className="flex-1 px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold transition border border-slate-700"
+                    onClick={() =>
+                      handleCopy(item.code, item.id, item.name)
+                    }
+                    disabled={item.is_finished}
+                    className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition border ${
+                      item.is_finished
+                        ? "bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed"
+                        : "bg-slate-800 hover:bg-slate-700 text-white border-slate-700"
+                    }`}
                   >
-                    {copiedId === item.id ? "✓ تم النسخ" : "نسخ الكود"}
+                    {item.is_finished
+                      ? "منتهي"
+                      : copiedId === item.id
+                      ? "✓ تم النسخ"
+                      : "نسخ الكود"}
                   </button>
                   <a
-                    href="https://www.ichancy.com"
+                    href={item.is_finished ? undefined : "https://www.ichancy.com"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 px-4 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 text-sm font-bold text-center transition"
+                    onClick={(e) => {
+                      if (item.is_finished) e.preventDefault();
+                    }}
+                    className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-bold text-center transition ${
+                      item.is_finished
+                        ? "bg-slate-800/50 text-slate-500 cursor-not-allowed"
+                        : "bg-sky-500 hover:bg-sky-400 text-slate-900"
+                    }`}
                   >
                     iChancy
                   </a>

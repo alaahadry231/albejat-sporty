@@ -10,7 +10,7 @@ export async function GET() {
   try {
     const data = await sql`
       select * from sports_pages
-      order by sort_order asc, created_at desc
+      order by is_finished asc, sort_order asc, created_at desc
     `;
     return NextResponse.json({ data });
   } catch (error) {
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { name, description, code, category, rate } = body;
+    const { name, description, code, category, rate, is_finished } = body;
 
     if (!name || !code) {
       return NextResponse.json(
@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await sql`
-      insert into sports_pages (name, description, code, category, rate)
-      values (${name}, ${description || ""}, ${code}, ${category || "عام"}, ${rate || "×1"})
+      insert into sports_pages (name, description, code, category, rate, is_finished)
+      values (${name}, ${description || ""}, ${code}, ${category || "عام"}, ${rate || "×1"}, ${is_finished ?? false})
       returning *
     `;
 

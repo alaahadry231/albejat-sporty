@@ -11,6 +11,7 @@ type SportsPage = {
   category: string;
   rate: string;
   is_published: boolean;
+  is_finished: boolean;
 };
 
 type TelegramBot = {
@@ -146,7 +147,6 @@ export default function DashboardPage() {
   const [wheelEnabled, setWheelEnabled] = useState<boolean | null>(null);
   const [togglingWheel, setTogglingWheel] = useState(false);
 
-  // Predict status
   const [predictEnabled, setPredictEnabled] = useState<boolean | null>(null);
   const [togglingPredict, setTogglingPredict] = useState(false);
 
@@ -262,6 +262,33 @@ export default function DashboardPage() {
         alert("فشل الحذف");
         return;
       }
+      await fetchPages();
+    } catch {
+      alert("تعذر الاتصال بالخادم");
+    }
+  };
+
+  const handleToggleFinished = async (page: SportsPage) => {
+    const action = page.is_finished ? "إعادة تنشيط" : "إنهاء";
+    if (
+      !confirm(
+        `هل أنت متأكد من ${action} البكج "${page.name}"؟`
+      )
+    )
+      return;
+
+    try {
+      const res = await fetch(`/api/admin/pages/${page.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "toggle_finished" }),
+      });
+
+      if (!res.ok) {
+        alert("فشل التحديث");
+        return;
+      }
+
       await fetchPages();
     } catch {
       alert("تعذر الاتصال بالخادم");
@@ -524,7 +551,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Predict status
   const fetchPredictStatus = async () => {
     try {
       const res = await fetch("/api/admin/predict-status");
@@ -1356,6 +1382,9 @@ export default function DashboardPage() {
                       <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">
                         الريت
                       </th>
+                      <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold hidden md:table-cell">
+                        الحالة
+                      </th>
                       <th className="text-right px-4 py-3 text-sm text-slate-400 font-semibold">
                         الإجراءات
                       </th>
@@ -1365,7 +1394,9 @@ export default function DashboardPage() {
                     {pages.map((p) => (
                       <tr
                         key={p.id}
-                        className="border-b border-slate-800 last:border-0"
+                        className={`border-b border-slate-800 last:border-0 ${
+                          p.is_finished ? "opacity-60" : ""
+                        }`}
                       >
                         <td className="px-4 py-3">
                           <div className="font-semibold">{p.name}</div>
@@ -1383,13 +1414,34 @@ export default function DashboardPage() {
                             {p.rate}
                           </span>
                         </td>
+                        <td className="px-4 py-3 hidden md:table-cell">
+                          {p.is_finished ? (
+                            <span className="inline-block px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-semibold border border-red-500/30">
+                              ⏹️ منتهي
+                            </span>
+                          ) : (
+                            <span className="inline-block px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold border border-green-500/30">
+                              ✅ نشط
+                            </span>
+                          )}
+                        </td>
                         <td className="px-4 py-3">
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <button
                               onClick={() => openEditPage(p)}
                               className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs transition"
                             >
                               تعديل
+                            </button>
+                            <button
+                              onClick={() => handleToggleFinished(p)}
+                              className={`px-3 py-1.5 rounded-lg text-xs border transition ${
+                                p.is_finished
+                                  ? "bg-green-500/10 hover:bg-green-500/20 text-green-400 border-green-500/30"
+                                  : "bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                              }`}
+                            >
+                              {p.is_finished ? "▶️ تنشيط" : "⏹️ إنهاء"}
                             </button>
                             <button
                               onClick={() => handleDeletePage(p.id, p.name)}
